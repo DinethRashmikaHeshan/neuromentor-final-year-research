@@ -1,0 +1,452 @@
+[
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "Check the data types in your division."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "Dividing two integers in C always results in an integer."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Change '5 / 2' to '5.0 / 2.0' to get a float result."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "The division on line 2 isn't giving you a decimal."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "Because 5 and 2 are integers, C throws away the .5."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Let's force it to be a decimal. Write 'float result = 5.0 / 2.0;' instead."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "In C, if you divide whole numbers, the answer is a whole number."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "Even though 'result' is a float, the math '5 / 2' happens first and cuts off the decimal."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    float result = 5 / 2;\n    printf(\"%f\", result);\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "To fix integer division truncation, make at least one number a float: '5.0 / 2'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "Where is 'ptr' pointing to?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "You are dereferencing a pointer that hasn't been assigned an address."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Point 'ptr' to a valid variable's address before assigning 10."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "Your pointer 'ptr' doesn't have a home yet."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "You can't put the value 10 into a pointer that isn't pointing anywhere."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Make an integer variable first, then point 'ptr' to it using '&'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "A pointer only holds memory addresses, not actual numbers."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "By writing '*ptr = 10', you are trying to write to a random, unallocated piece of memory (SegFault)."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    int *ptr;\n    *ptr = 10;\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "First, create 'int x;'. Then point the pointer: 'ptr = &x;'. Finally, '*ptr = 10;'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "What happens after 'case 1' executes?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "Your switch statement is 'falling through' to the next case."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Add a 'break;' statement at the end of case 1."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "If x is 1, it prints 'One' AND 'Two'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "Switch cases in C don't stop automatically."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Put the word 'break;' on a new line right after printf(\"One\");"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "Switch statements are like a waterfall. Once they start, they keep falling through the cases below."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "To stop the waterfall after case 1, you have to explicitly tell C to break out of the switch."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nswitch(x) {\n    case 1:\n        printf(\"One\");\n    case 2:\n        printf(\"Two\");\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "Add 'break;' after your printf statements so it only executes the matching case."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "Check your loop condition and update step."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "Will 'i' ever reach 10?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Change 'i--' to 'i++'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "Your loop is running forever."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "'i' starts at 0 and goes down (-1, -2...). It will always be less than 10."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Change the 'i--' to 'i++' so the number actually goes up."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "A for-loop stops when the condition in the middle becomes false."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "Because you are subtracting (i--), 'i' gets further and further away from 10."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nfor (int i = 0; i < 10; i--) {\n    printf(\"%d\", i);\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "To make the loop count up to 10 and stop, use the increment operator: 'i++'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "Are string literals mutable in C?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "You are trying to change read-only memory."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Declare 'str' as an array: char str[] = \"hello\";"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "You can't change the letters in this specific type of string."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "Using a pointer (*str) for text makes it read-only."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Change 'char *str' to 'char str[]' to make it an editable array."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "In C, text declared with a pointer (*str) is stored in a locked part of memory."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "When you try to change 'h' to 'H', the program crashes because the memory is read-only."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint main() {\n    char *str = \"hello\";\n    str[0] = 'H';\n    return 0;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "By using an array (char str[]), C copies the text into your own editable memory."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "Check your array index."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "Arrays in C are zero-indexed. Is there an arr[5]?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "The last element is arr[4]. Change your print statement."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "You are trying to read past the end of the array."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "An array of size 5 only has spots 0, 1, 2, 3, and 4."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "To print the last number, change 'arr[5]' to 'arr[4]'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "C starts counting array slots at 0, not 1."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "If you have 5 items, their addresses are 0, 1, 2, 3, and 4. Slot 5 doesn't exist."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint arr[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", arr[5]);\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "Asking for arr[5] reads random garbage memory. Change it to arr[4]."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "What happens to 'x' when the function ends?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "You are returning the address of a local variable."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Allocate memory dynamically with malloc, or pass a pointer in as an argument."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "The variable 'x' gets destroyed when the function finishes."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "You are sending back a pointer to memory that no longer exists."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "To fix this, you must use 'malloc' to keep the memory alive."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "Local variables (like x) only live inside the curly braces where they are created."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "When getNum() finishes, 'x' is deleted. Returning '&x' gives you a 'dangling pointer'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint* getNum() {\n    int x = 5;\n    return &x;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "You need memory that survives the function. Use 'int *x = malloc(sizeof(int));'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "How does C handle array names?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "An array name is already a pointer to its first element."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Remove the '&' before 'name' in your scanf."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "You don't need the '&' for strings."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "Because 'name' is an array, it already acts like a memory address."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Change it to: scanf(\"%s\", name);"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "Normally, scanf needs an '&' to find where a variable lives in memory."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "However, in C, the name of an array automatically points to its memory address."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nchar name[50];\nscanf(\"%s\", &name);\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "Using '&name' creates a pointer to a pointer, which causes bugs. Just use 'name'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "Check your AND operator."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "Are you trying to do a bitwise operation or a logical comparison?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Use '&&' for logical AND comparisons."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "A single '&' is for advanced math (bitwise), not logic."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "To say 'this AND that', you need two ampersands."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Change the '&' in your if-statement to '&&'."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "In C, '&' compares numbers at the binary level (1s and 0s)."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "To check if two conditions are both true, you must use the logical AND operator."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nif (x > 5 & x < 10) {\n    printf(\"Valid\");\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "Replace the single '&' with '&&' to correctly connect your two conditions."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: FOCUS\nAttempt Number: 1",
+        "output": "What is this function supposed to give back?"
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: FOCUS\nAttempt Number: 2",
+        "output": "The function signature says 'int', but nothing is returned."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: FOCUS\nAttempt Number: 3",
+        "output": "Add 'return sum;' at the end of the function."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 1",
+        "output": "Your function does the math, but doesn't hand the answer back."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 2",
+        "output": "Because it starts with 'int', it must output an integer."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: OVERLOAD\nAttempt Number: 3",
+        "output": "Put 'return sum;' right before the closing curly brace."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 1",
+        "output": "When you declare 'int calculateSum', you are promising the compiler you will hand back an integer."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 2",
+        "output": "Right now, the math happens, but the answer is trapped inside the function."
+    },
+    {
+        "instruction": "You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.",
+        "input": "Student Code:\nint calculateSum(int a, int b) {\n    int sum = a + b;\n}\n\nCognitive State: CONFUSE\nAttempt Number: 3",
+        "output": "Use the 'return' keyword to send the value of 'sum' back to wherever the function was called."
+    }
+]

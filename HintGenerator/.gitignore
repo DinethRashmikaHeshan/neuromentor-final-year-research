@@ -1,0 +1,9 @@
+# Ignore massive AI models
+*.gguf
+
+# Ignore Python cache files (these generate automatically)
+__pycache__/
+*.pyc
+
+# Ignore Mac system files
+.DS_Store
