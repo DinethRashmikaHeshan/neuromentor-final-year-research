@@ -1,0 +1,46 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+# .vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build and distribution
+out/
+dist/
+*.vsix
+*.tgz
+
+# Dependencies
+/node_modules
+node_modules/
+
+# Extension specific
+.vscode-test/
+test-results/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+.cache/

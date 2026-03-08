@@ -1,0 +1,56 @@
+{
+    "name": "vark-behavior-tracker",
+    "displayName": "VARK Behavior Tracker",
+    "version": "1.0.0",
+    "publisher": "you",
+    "activationEvents": ["*"],
+    "main": "./extension.js",
+    "engines": { "vscode": "^1.80.0" },
+    "icon": "vark-icon.svg",
+    "contributes": {
+      "viewsContainers": {
+        "activitybar": [
+          {
+            "id": "varkSideBar",
+            "title": "Neuromentor",
+            "icon": "vark-icon.svg"
+          }
+        ]
+      },
+      "views": {
+        "varkSideBar": [
+          {
+            "type": "webview",
+            "id": "varkUserView",
+            "name": "My Profile"
+          }
+        ]
+      },
+      "commands": [
+        {
+          "command": "varkBehavior.login",
+          "title": "VARK: Login"
+        },
+        {
+          "command": "varkBehavior.register",
+          "title": "VARK: Register"
+        },
+        {
+          "command": "varkBehavior.logout",
+          "title": "VARK: Logout"
+        },
+        {
+          "command": "varkBehavior.showPanel",
+          "title": "VARK: Show Learning Style"
+        },
+        {
+          "command": "varkBehavior.sendNow",
+          "title": "VARK: Send Behavior Data Now"
+        }
+      ]
+    },
+    "dependencies": {
+      "axios": "^1.6.0"
+    }
+  }
+  
