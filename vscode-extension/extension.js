@@ -362,7 +362,8 @@ async function activate(context) {
             userViewProvider.updateView();
         }
         vscode.window.showInformationMessage(`Welcome back, ${currentUser.name}!`);
-    }
+    }// THE ONLY ADDED LINE: Link your hinting module!
+    require('./hinting.js').activateHinting(context);
 }
 
 async function openWebAuthenticator(context) {

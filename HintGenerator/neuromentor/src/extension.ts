@@ -27,9 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
         ws.on('open', () => {
             const payload = {
                 code: studentCode,
-                state: "OVERLOAD", 
                 attempt: 2,
-                vark: "A" 
             };
             ws.send(JSON.stringify(payload));
         });
