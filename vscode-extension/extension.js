@@ -2,18 +2,19 @@ const vscode = require('vscode');
 const axios = require('axios');
 const http = require('http');
 
-const API_BASE_URL = 'http://localhost:3000/api';
-const AUTH_URL = 'http://localhost:3000/auth';
+const API_BASE_URL = 'https://neuromentor-backend--8u5ar44.thankfulcoast-1d37f0d2.eastasia.azurecontainerapps.io/api';
+const AUTH_URL = 'https://neuromentor-backend--8u5ar44.thankfulcoast-1d37f0d2.eastasia.azurecontainerapps.io/api/auth';
 
 // Behavior tracking variables
 let keystrokes = 0;
 let scrollEvents = 0;
+let idleTime = 0;
 let compileCount = 0;
-let commentCount = 0;
+let commentLines = 0;
 let startTime = Date.now();
+let lastActivityTime = Date.now();
 let currentUser = null;
 let authToken = null;
-let behaviors = [];
 let authCallbackServer = null;
 let userViewProvider = null;
 
@@ -317,6 +318,9 @@ async function activate(context) {
         authToken = await secretStorage.get('vark-auth-token');
         currentUser = JSON.parse(await secretStorage.get('vark-user') || '{}');
         console.log('[Init] Loaded existing auth:', currentUser?.email);
+        if (authToken && currentUser?.id) {
+            await updateUserVarkStyle();  // Fetch latest VARK style
+        }
     } catch (error) {
         console.log('[Init] No existing auth found:', error.message);
     }
@@ -352,9 +356,7 @@ async function activate(context) {
         console.log('[Init] No auth token found, opening web authenticator');
         await openWebAuthenticator(context);
     } else {
-        // Load existing behavior data
-        console.log('[Init] Auth token found, loading behavior history');
-        await loadBehaviorHistory();
+        console.log('[Init] Auth token found, starting behavior tracking');
         startBehaviorTracking(context);
         if (userViewProvider) {
             userViewProvider.updateView();
@@ -369,17 +371,12 @@ async function openWebAuthenticator(context) {
     try {
         // Check if backend is running
         try {
-            await axios.get('http://localhost:3000', { timeout: 2000 });
+            await axios.get(`${API_BASE_URL.replace('/api', '')}`, { timeout: 5000 });
         } catch (error) {
             console.error('[Auth] Backend not responding');
-            const choice = await vscode.window.showErrorMessage(
-                'VS Code backend is not running on http://localhost:3000',
-                'Start Backend',
-                'Cancel'
+            vscode.window.showErrorMessage(
+                `Cannot connect to backend: ${API_BASE_URL}`
             );
-            if (choice === 'Start Backend') {
-                vscode.window.showWarningMessage('Please run: cd backend && npm run dev');
-            }
             return;
         }
 
@@ -410,7 +407,7 @@ function startAuthCallbackServer(context) {
             return;
         }
 
-        const server = http.createServer((req, res) => {
+        const server = http.createServer(async (req, res) => {
             console.log('[Callback] Received request:', req.url);
 
             if (req.url.startsWith('/auth-callback')) {
@@ -424,8 +421,8 @@ function startAuthCallbackServer(context) {
                         currentUser = JSON.parse(decodeURIComponent(userJson));
 
                         // Store securely
-                        context.secrets.store('vark-auth-token', authToken);
-                        context.secrets.store('vark-user', JSON.stringify(currentUser));
+                        await context.secrets.store('vark-auth-token', authToken);
+                        await context.secrets.store('vark-user', JSON.stringify(currentUser));
 
                         console.log('[Auth] Successfully authenticated:', currentUser.email);
 
@@ -444,8 +441,8 @@ function startAuthCallbackServer(context) {
                             </html>
                         `);
 
-                        // Load behavior history and start tracking
-                        loadBehaviorHistory();
+                        // Get latest VARK style and start tracking
+                        await updateUserVarkStyle();
                         startBehaviorTracking(context);
                         if (userViewProvider) {
                             userViewProvider.updateView();
@@ -494,15 +491,17 @@ function getLearningStyleDescription(style) {
 
 
 
-async function loadBehaviorHistory() {
+async function updateUserVarkStyle() {
     try {
-        const response = await axios.get(`${API_BASE_URL}/behavior`, {
+        const response = await axios.get(`${API_BASE_URL}/behavior/vark-style`, {
             headers: { Authorization: `Bearer ${authToken}` }
         });
-        behaviors = response.data || [];
-        console.log(`[Behavior] Loaded ${behaviors.length} previous behavior records`);
+        if (response.data?.predicted_style) {
+            currentUser.learningStyle = response.data.predicted_style;
+            console.log('[VARK] Updated VARK style:', currentUser.learningStyle);
+        }
     } catch (error) {
-        console.log('[Behavior] Could not load behavior history:', error.message);
+        console.log('[VARK] Could not fetch VARK style:', error.message);
     }
 }
 
@@ -514,19 +513,31 @@ function startBehaviorTracking(context) {
             keystrokes += change.text.length;
             const trimmed = change.text.trim();
             if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
-                commentCount++;
+                commentLines++;
             }
+            lastActivityTime = Date.now();
         }
     });
 
     const visibleRangeDisposable = vscode.window.onDidChangeTextEditorVisibleRanges(() => {
         scrollEvents++;
+        lastActivityTime = Date.now();
     });
 
     // Track debug sessions for compile count
     const debugSessionDisposable = vscode.debug.onDidStartDebugSession(() => {
         compileCount++;
+        lastActivityTime = Date.now();
     });
+
+    // Track idle time - check every 10 seconds if idle (no activity for last 30 seconds)
+    const idleCheckInterval = setInterval(() => {
+        const timeSinceLastActivity = (Date.now() - lastActivityTime) / 1000;
+        if (timeSinceLastActivity > 30) {
+            idleTime += 10; // Add 10 seconds to idle counter
+        }
+    }, 10000);
+    const idleCheckDisposable = { dispose: () => clearInterval(idleCheckInterval) };
 
     // Send behavior every 5 minutes
     const timer = setInterval(() => sendBehaviorData(), 300000);
@@ -536,6 +547,7 @@ function startBehaviorTracking(context) {
         textChangeDisposable,
         visibleRangeDisposable,
         debugSessionDisposable,
+        idleCheckDisposable,
         timerDisposable
     );
 }
@@ -547,14 +559,17 @@ async function sendBehaviorData() {
     }
 
     const sessionDuration = (Date.now() - startTime) / 1000;
+    const timestamp = new Date().toISOString();
 
     const payload = {
         userId: currentUser.id,
         keystrokes,
         scrollEvents,
+        idleTime,
         compileCount,
-        commentRatio: commentCount / (keystrokes || 1),
-        sessionDuration
+        commentLines,
+        sessionDuration,
+        timestamp
     };
 
     try {
@@ -562,24 +577,25 @@ async function sendBehaviorData() {
             headers: { Authorization: `Bearer ${authToken}` }
         });
 
-        const predictedStyle = response.data.predictedStyle || 'unknown';
-        console.log(`[Tracking] VARK Prediction: ${predictedStyle}`);
+        console.log('[Tracking] Behavior data sent successfully:', payload);
 
-        // Update user's learning style if prediction changed
-        if (predictedStyle !== 'unknown' && currentUser.learningStyle !== predictedStyle) {
-            currentUser.learningStyle = predictedStyle;
+        // Update VARK style from response if available
+        if (response.data?.predicted_style) {
+            currentUser.learningStyle = response.data.predicted_style;
+            console.log('[Tracking] VARK Style updated:', currentUser.learningStyle);
         }
 
         vscode.window.showInformationMessage(
-            `Behavior saved! Predicted Learning Style: ${predictedStyle}`
+            `Behavior logged! Current Learning Style: ${currentUser.learningStyle || 'Calculating...'}`
         );
 
-        // Reset counters
-        keystrokes = scrollEvents = compileCount = commentCount = 0;
+        // Reset counters for next tracking period
+        keystrokes = scrollEvents = idleTime = compileCount = commentLines = 0;
         startTime = Date.now();
+        lastActivityTime = Date.now();
     } catch (error) {
         console.log('[Tracking] Failed to send behavior data:', error.message);
-        vscode.window.showErrorMessage('Failed to send behavior data');
+        vscode.window.showErrorMessage(`Failed to send behavior data: ${error.message}`);
     }
 }
 
@@ -589,7 +605,6 @@ async function logout(context) {
         
         authToken = null;
         currentUser = null;
-        behaviors = [];
         
         console.log('[Auth] Cleared auth variables');
         
