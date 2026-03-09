@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const axios = require('axios');
-const http = require('http');
 
 const API_BASE_URL = 'https://neuromentor-backend--8u5ar44.thankfulcoast-1d37f0d2.eastasia.azurecontainerapps.io/api';
 const AUTH_URL = 'https://neuromentor-backend--8u5ar44.thankfulcoast-1d37f0d2.eastasia.azurecontainerapps.io/api/auth';
@@ -15,8 +14,354 @@ let startTime = Date.now();
 let lastActivityTime = Date.now();
 let currentUser = null;
 let authToken = null;
-let authCallbackServer = null;
 let userViewProvider = null;
+let authPanel = null;
+
+class AuthWebviewProvider {
+    constructor(context) {
+        this._context = context;
+    }
+
+    async show() {
+        if (authPanel) {
+            authPanel.reveal(vscode.ViewColumn.One);
+            return;
+        }
+
+        authPanel = vscode.window.createWebviewPanel(
+            'varkAuth',
+            'VARK Authentication',
+            vscode.ViewColumn.One,
+            { enableScripts: true }
+        );
+
+        authPanel.webview.html = this.getHtml();
+        authPanel.onDidDispose(() => {
+            authPanel = null;
+        });
+
+        authPanel.webview.onDidReceiveMessage(async (message) => {
+            if (message.command === 'login') {
+                await this.handleLogin(message.email, message.password);
+            } else if (message.command === 'register') {
+                await this.handleRegister(message.name, message.email, message.password, message.passwordConfirm);
+            }
+        });
+    }
+
+    async handleLogin(email, password) {
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/auth/login`,
+                { email, password }
+            );
+
+            if (response.data?.token) {
+                authToken = response.data.token;
+                currentUser = response.data.user;
+
+                // Store securely
+                await this._context.secrets.store('vark-auth-token', authToken);
+                await this._context.secrets.store('vark-user', JSON.stringify(currentUser));
+
+                console.log('[Auth] Successfully logged in:', currentUser.email);
+                authPanel?.dispose();
+
+                // Update UI
+                await updateUserVarkStyle();
+                startBehaviorTracking(this._context);
+                if (userViewProvider) {
+                    userViewProvider.updateView();
+                }
+
+                vscode.window.showInformationMessage(`Welcome, ${currentUser.name}! VS Code will now track your learning behavior.`);
+            }
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message;
+            authPanel?.webview.postMessage({ command: 'error', error: errorMsg });
+        }
+    }
+
+    async handleRegister(name, email, password, passwordConfirm) {
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/auth/signup`,
+                { name, email, password, passwordConfirm }
+            );
+
+            if (response.data?.token) {
+                authToken = response.data.token;
+                currentUser = response.data.user;
+
+                // Store securely
+                await this._context.secrets.store('vark-auth-token', authToken);
+                await this._context.secrets.store('vark-user', JSON.stringify(currentUser));
+
+                console.log('[Auth] Successfully registered:', currentUser.email);
+                authPanel?.dispose();
+
+                // Update UI
+                await updateUserVarkStyle();
+                startBehaviorTracking(this._context);
+                if (userViewProvider) {
+                    userViewProvider.updateView();
+                }
+
+                vscode.window.showInformationMessage(`Welcome, ${currentUser.name}! VS Code will now track your learning behavior.`);
+            }
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message;
+            authPanel?.webview.postMessage({ command: 'error', error: errorMsg });
+        }
+    }
+
+    getHtml() {
+        return `<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #003f87 0%, #0078d4 50%, #00a8e8 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
+        }
+        h2 { text-align: center; font-size: 20px; margin-bottom: 10px; font-weight: 600; }
+        p { text-align: center; font-size: 13px; color: var(--vscode-descriptionForeground); margin-bottom: 20px; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            background: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        .btn-primary:hover {
+            background: var(--vscode-button-hoverBackground);
+        }
+        .btn-secondary {
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        .btn-secondary:hover {
+            background: var(--vscode-button-secondaryHoverBackground);
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .error {
+            background: #d93439;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            display: none;
+        }
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">◎</div>
+        <h2>VARK Learning</h2>
+        <p>Track your learning style through your coding behavior</p>
+        
+        <div class="error" id="errorMsg"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+            <button class="tab-btn" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <div id="login" class="tab-content active">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button class="btn-primary" onclick="login()" style="width: 100%; padding: 10px;">Login</button>
+        </div>
+
+        <div id="register" class="tab-content">
+            <div class="form-group">
+                <label for="registerName">Name</label>
+                <input type="text" id="registerName" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" placeholder="Enter your password">
+            </div>
+            <div class="form-group">
+                <label for="registerPasswordConfirm">Confirm Password</label>
+                <input type="password" id="registerPasswordConfirm" placeholder="Confirm your password">
+            </div>
+            <button class="btn-primary" onclick="register()" style="width: 100%; padding: 10px;">Register</button>
+        </div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            vscode.postMessage({
+                command: 'login',
+                email,
+                password
+            });
+        }
+
+        function register() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+
+            if (!name || !email || !password || !passwordConfirm) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            vscode.postMessage({
+                command: 'register',
+                name,
+                email,
+                password,
+                passwordConfirm
+            });
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMsg');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'error') {
+                showError(message.error);
+            }
+        });
+    </script>
+</body>
+</html>`;
+    }
+}
 
 class VarkUserViewProvider {
     constructor(context) {
@@ -318,6 +663,9 @@ async function activate(context) {
         authToken = await secretStorage.get('vark-auth-token');
         currentUser = JSON.parse(await secretStorage.get('vark-user') || '{}');
         console.log('[Init] Loaded existing auth:', currentUser?.email);
+        // authToken = null;
+        // currentUser = null;
+        // console.log('[Init] Starting fresh - no cached auth');
         if (authToken && currentUser?.id) {
             await updateUserVarkStyle();  // Fetch latest VARK style
         }
@@ -367,7 +715,7 @@ async function activate(context) {
 }
 
 async function openWebAuthenticator(context) {
-    console.log('[Auth] Opening web authenticator');
+    console.log('[Auth] Opening authentication webview');
     
     try {
         // Check if backend is running
@@ -381,101 +729,13 @@ async function openWebAuthenticator(context) {
             return;
         }
 
-        // Start callback server to listen for auth messages
-        await startAuthCallbackServer(context);
-
-        // Open browser to authentication URL
-        console.log('[Auth] Opening browser to', AUTH_URL);
-        const uri = vscode.Uri.parse(AUTH_URL);
-        await vscode.env.openExternal(uri);
-
-        vscode.window.showInformationMessage(
-            'Authentication page opened in your browser. Please login or register.',
-            'Opening...'
-        );
+        const authProvider = new AuthWebviewProvider(context);
+        await authProvider.show();
 
     } catch (error) {
-        console.error('[Auth] Error opening web authenticator:', error);
+        console.error('[Auth] Error opening authentication:', error);
         vscode.window.showErrorMessage(`Failed to open authentication: ${error.message}`);
     }
-}
-
-function startAuthCallbackServer(context) {
-    return new Promise((resolve) => {
-        if (authCallbackServer) {
-            console.log('[Auth] Callback server already running');
-            resolve();
-            return;
-        }
-
-        const server = http.createServer(async (req, res) => {
-            console.log('[Callback] Received request:', req.url);
-
-            if (req.url.startsWith('/auth-callback')) {
-                const urlParams = new URLSearchParams(req.url.split('?')[1]);
-                const token = urlParams.get('token');
-                const userJson = urlParams.get('user');
-
-                if (token && userJson) {
-                    try {
-                        authToken = token;
-                        currentUser = JSON.parse(decodeURIComponent(userJson));
-
-                        // Store securely
-                        await context.secrets.store('vark-auth-token', authToken);
-                        await context.secrets.store('vark-user', JSON.stringify(currentUser));
-
-                        console.log('[Auth] Successfully authenticated:', currentUser.email);
-
-                        // Send success response
-                        res.writeHead(200, { 'Content-Type': 'text/html' });
-                        res.end(`
-                            <html>
-                            <head><title>Authentication Success</title></head>
-                            <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5;">
-                                <div style="text-align: center;">
-                                    <h1 style="color: #667eea;">✓ Authentication Successful!</h1>
-                                    <p style="color: #666; font-size: 16px;">Welcome, ${currentUser.name}!</p>
-                                    <p style="color: #999; margin-top: 20px;">You can close this window and return to VS Code.</p>
-                                </div>
-                            </body>
-                            </html>
-                        `);
-
-                        // Get latest VARK style and start tracking
-                        await updateUserVarkStyle();
-                        startBehaviorTracking(context);
-                        if (userViewProvider) {
-                            userViewProvider.updateView();
-                        }
-
-                        vscode.window.showInformationMessage(
-                            `Welcome, ${currentUser.name}! VS Code will now track your learning behavior.`
-                        );
-
-                    } catch (error) {
-                        console.error('[Auth] Error processing callback:', error);
-                        res.writeHead(500, { 'Content-Type': 'text/html' });
-                        res.end('<html><body><h1>Authentication Error</h1><p>Failed to process authentication.</p></body></html>');
-                    }
-                } else {
-                    console.log('[Auth] Missing token or user data in callback');
-                    res.writeHead(400, { 'Content-Type': 'text/html' });
-                    res.end('<html><body><h1>Parameter Error</h1><p>Missing token or user data.</p></body></html>');
-                }
-            } else {
-                res.writeHead(404);
-                res.end('Not found');
-            }
-        });
-
-        const PORT = 7777;
-        server.listen(PORT, 'localhost', () => {
-            console.log(`[Callback] Server listening on http://localhost:${PORT}`);
-            authCallbackServer = server;
-            resolve();
-        });
-    });
 }
 
 function getLearningStyleDescription(style) {
@@ -603,37 +863,44 @@ async function sendBehaviorData() {
 async function logout(context) {
     try {
         console.log('[Auth] Starting logout process');
-        
-        authToken = null;
-        currentUser = null;
-        
-        console.log('[Auth] Cleared auth variables');
-        
-        // Clear secure storage
+
+        // Clear secure storage FIRST before clearing in-memory variables
         try {
             await context.secrets.delete('vark-auth-token');
             await context.secrets.delete('vark-user');
             console.log('[Auth] Cleared secure storage');
+
+            // Double-check the secret is actually gone
+            const checkToken = await context.secrets.get('vark-auth-token');
+            if (checkToken && checkToken.trim() !== '') {
+                // Fallback: overwrite with empty values if delete didn't work
+                await context.secrets.store('vark-auth-token', '');
+                await context.secrets.store('vark-user', '{}');
+                console.warn('[Auth] Secret persisted after delete — overwrote with empty string');
+            }
         } catch (error) {
-            console.log('[Auth] Error clearing secure storage:', error.message);
+            console.error('[Auth] Error clearing secure storage:', error.message);
         }
-        
-        console.log('[Auth] User logged out, auth data cleared');
-        
-        // Force view update to show login prompt FIRST
+
+        // Now clear in-memory state AFTER storage is confirmed cleared
+        authToken = null;
+        currentUser = null;
+        console.log('[Auth] Cleared in-memory auth variables');
+
+        // Force view update to show login prompt
         if (userViewProvider) {
             console.log('[Auth] Updating view after logout');
             userViewProvider.updateView();
         } else {
             console.log('[Auth] userViewProvider not available');
         }
-        
+
         // Small delay to ensure view updates before showing message
         await new Promise(resolve => setTimeout(resolve, 300));
-        
+
         vscode.window.showInformationMessage('Logged out successfully. Click Login/Register in the sidebar to sign in again.');
         console.log('[Auth] Logout completed successfully');
-        
+
     } catch (error) {
         console.error('[Auth] Logout error:', error);
         vscode.window.showErrorMessage(`Logout error: ${error.message}`);
@@ -641,11 +908,6 @@ async function logout(context) {
 }
 
 async function deactivate() {
-    if (authCallbackServer) {
-        console.log('[Server] Closing callback server');
-        authCallbackServer.close();
-    }
-
     if (authToken && currentUser) {
         try {
             await sendBehaviorData();
