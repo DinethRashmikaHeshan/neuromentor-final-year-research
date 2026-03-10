@@ -21,9 +21,9 @@ client = genai.Client(api_key=API_KEY)
 BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 HOSTED_URL = os.getenv("HOSTED_URL")
 
-# Configure logging
+# Configure logging (suppress most noise; we'll print only hints)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ async def listen_to_module1():
                     CURRENT_COGNITIVE_STATE = data.get("state", "FOCUS").upper()
                     logger.debug(f"Updated cognitive state to: {CURRENT_COGNITIVE_STATE}")
         except Exception as e:
-            logger.warning(f"Module 1 connection failed: {e}. Retrying in 2s...")
+            # logger.warning(f"Module 1 connection failed: {e}. Retrying in 2s...")
             await asyncio.sleep(2)
 
 @asynccontextmanager
@@ -108,11 +108,13 @@ Attempt Number: {attempt}
 
 ### Response:
 """
-    logger.info(f"Calling local LLM for hint generation (state={state}, attempt={attempt})")
+    logger.debug(f"Calling local LLM for hint generation (state={state}, attempt={attempt})")
     try:
         output = llm(prompt, max_tokens=150, stop=["### Instruction:"], echo=False)
         hint = output['choices'][0]['text'].strip()
-        logger.debug(f"Local LLM generated hint: {hint[:50]}...")
+        # print hint explicitly for console visibility
+        print(f"🔍 Local LLM hint: {hint}")
+        logger.debug(f"Local LLM generated hint: {hint[:50]}...",{state})
         return hint
     except Exception as e:
         logger.error(f"Error calling local LLM: {e}")
@@ -120,23 +122,23 @@ Attempt Number: {attempt}
 
 def format_hint_to_vark(code: str, vark_style: str, base_hint: str):
     prompt = f"""
-    You are a strict API formatting engine. Your ONLY job is to translate the provided C programming hint into the requested VARK learning style.
+    You are a strict API formatting engine. Translate the C programming hint into the requested VARK learning style.
     
     Code Context: {code}
     Base Hint: "{base_hint}"
-    Requested Style: {vark_style} (V=Visual, A=Audio, R=Reading, K=Kinesthetic)
+    Requested Style: {vark_style}
     
     MEDIA RULES:
-    - V: Output ONLY raw Mermaid.js syntax (e.g., graph TD; A-->B;). Do NOT use ```mermaid markdown.
-    - A: Output a conversational script designed to be read aloud by Text-to-Speech.
-    - R: Output a clear, text-based explanation of the bug.
-    - K: Output a short physical instruction (e.g., "Highlight line 4 and type an ampersand").
+    - V: Output ONLY a valid Mermaid.js flowchart. Start with "flowchart TD;". Use SEMICOLONS (;) to separate statements, NOT newlines. Do not use markdown backticks. Example: flowchart TD; A[Bug] --> B[Fix];
+    - A: Output a conversational script designed to be read aloud.
+    - R: Output a clear, text-based explanation.
+    - K: Output a strict, step-by-step physical instruction on what the user must type.
 
-    You must output ONLY a valid JSON object. No other text.
+    You must output ONLY a valid JSON object. No extra text.
     {{
         "hint_text": "A short 1-sentence empathetic hint.",
         "vark_mode": "{vark_style}",
-        "media_content": "The media data based on the rules above."
+        "media_content": "The media data."
     }}
     """
     try:
@@ -149,7 +151,6 @@ def format_hint_to_vark(code: str, vark_style: str, base_hint: str):
             )
         )
         
-        # Clean the output
         clean_text = response.text.strip()
         if clean_text.startswith("```json"):
             clean_text = clean_text[7:]
@@ -160,7 +161,10 @@ def format_hint_to_vark(code: str, vark_style: str, base_hint: str):
         return payload
         
     except Exception as e:
-        print(f"❌ Error during formatting: {e}")
+        print(f"❌ JSON crashed: {e}")
+        # BULLETPROOF FAIL-SAFE FOR THE DEMO
+        if vark_style == 'V':
+            return {"hint_text": base_hint, "vark_mode": "V", "media_content": "flowchart TD; A[Error Detected] --> B[Check Syntax]; B --> C[Apply Fix];"}
         return {"hint_text": base_hint, "vark_mode": "R", "media_content": base_hint}
 
 @app.websocket("/ws/hints")
@@ -176,37 +180,51 @@ async def websocket_endpoint(websocket: WebSocket):
             code = data.get('code', '')
             attempt = min(int(data.get('attempt', 1)), 3)
             state = CURRENT_COGNITIVE_STATE
+            
+            # --- EXTRACT THE DYNAMIC TOKEN FROM VS CODE ---
+            client_token = data.get('token', '')
+            actual_token = client_token if client_token else BEARER_TOKEN # Fallback to .env if missing
+            
             logger.info(f"Received hint request - attempt: {attempt}, cognitive state: {state}")
             
-            try:
-                # 1. Set up your authentication header with ONLY the Bearer token
-                headers = {
-                    "Authorization": f"Bearer {BEARER_TOKEN}"
-                }
-                
-                # 2. Put your exact hosted URL here
-                hosted_url = HOSTED_URL
-                
-                # 3. Make the request
-                vark_res = await asyncio.to_thread(
-                    requests.get, 
-                    hosted_url, 
-                    headers=headers, 
-                    timeout=5 
-                )
-                
-                # 4. CONSOLE LOG THE OUTPUT
-                print(f"🌐 VARK API Status Code: {vark_res.status_code}")
-                print(f"🌐 VARK API Raw Response: {vark_res.text}")
-                
-                # 5. Extract the style safely
-                vark_style = vark_res.json().get("vark", "R").upper()
-                print(f"✅ Extracted VARK Style: {vark_style}")
-                
-            except Exception as e:
-                print(f"⚠️ VARK API Fetch Failed: {e}")
-                vark_style = "R" # Fallback to Reading if the internet drops
+            vark_style = None
             
+            # --- PRIORITY 1: ASK MODULE 2 (FRIEND's API) FIRST ---
+            try:
+                print("⏳ Fetching style from Module 2 API first...")
+                # USE THE DYNAMIC TOKEN HERE!
+                headers = {"Authorization": f"Bearer {actual_token}"}
+                
+                vark_res = await asyncio.to_thread(requests.get, HOSTED_URL, headers=headers, timeout=10)
+                
+                module_2_data = vark_res.json()
+                print(f"📦 Module 2 replied with: {module_2_data}")
+                
+                raw_style = module_2_data.get("predicted_style", module_2_data.get("vark", "")).upper()
+                style_map = {'VISUAL': 'V', 'AURAL': 'A', 'READING/WRITING': 'R', 'KINESTHETIC': 'K', 'MULTIMODAL': 'V'}
+                vark_style = style_map.get(raw_style, raw_style)
+                
+                if vark_style in ['V', 'A', 'R', 'K']:
+                    print(f"✅ Successfully using Module 2 Style: {vark_style}")
+                else:
+                    vark_style = None 
+                    
+            except Exception as e:
+                print(f"⚠️ Module 2 API Fetch Failed: {e}")
+                vark_style = None 
+
+            # --- PRIORITY 2: FALLBACK TO VS CODE DROPDOWN ---
+            if not vark_style:
+                requested_style = data.get('vark', '')
+                if requested_style in ['V', 'A', 'R', 'K']:
+                    vark_style = requested_style
+                    print(f"🔄 Fallback: Using VS Code dropdown override: {vark_style}")
+                else:
+                    vark_style = "R"
+                    print("⚠️ Fallback: Defaulting to R")
+            
+            # -----------------------------------------------------------
+
             if not is_valid_c_code(code):
                 logger.warning("Received invalid C code from client")
                 await websocket.send_text(json.dumps({
@@ -217,14 +235,11 @@ async def websocket_endpoint(websocket: WebSocket):
             detected_error = analyze_c_code(code)
             if detected_error and detected_error in HINT_MATRIX:
                 base_hint = HINT_MATRIX[detected_error][state][attempt]
-                logger.info(f"Using predefined hint for {detected_error}")
             else:
-                logger.info("No predefined hint found, generating custom hint with local LLM")
                 base_hint = get_local_ai_hint(code, state, attempt)
             
             vark_payload = format_hint_to_vark(code, vark_style, base_hint)
             
-            logger.info("Sending formatted hint to client")
             await websocket.send_text(json.dumps({
                 "status": "success",
                 "ai_payload": vark_payload,

@@ -1,6 +1,9 @@
 const vscode = require('vscode');
 const axios = require('axios');
 
+let extensionContext = null;
+const myHintingModule = require('./hinting.js'); // Change to './hinting.js' if that is your file name
+
 const API_BASE_URL = 'https://neuromentor-backend--8u5ar44.thankfulcoast-1d37f0d2.eastasia.azurecontainerapps.io/api';
 const COGNITIVE_BACKEND_URL = 'https://Urindu-Cognitive-Load-Inference-Engine.hf.space/predict';
 const HF_TOKEN = '';
@@ -824,14 +827,29 @@ async function sendEventToBackend(event) {
         const data = await response.json();
 
         if (data.prediction) {
+            const previousPrediction = currentPrediction; // Remember the last state
+            
             currentPrediction = data.prediction;
             currentProbabilities = data.probabilities;
+            
             console.log('[Cognitive] Prediction:', currentPrediction);
             updateStatusBar(currentPrediction);
 
-            // FIX: Push live update to sidebar webview without full HTML reload
             if (userViewProvider) {
                 userViewProvider.updateView();
+            }
+
+            // --- THE REAL-TIME TRIGGER ---
+            // If they just became confused, instantly trigger your AI hint!
+            // Define the specific states that should trigger the AI
+            const triggerStates = ['confused', 'focused', 'overload'];
+
+            // Trigger if the current state is one of the target states
+            if (triggerStates.includes(currentPrediction)) {
+                console.log(`⚠️ State shifted to ${currentPrediction}! Triggering AI...`);
+                if (myHintingModule && myHintingModule.triggerHint) {
+                    myHintingModule.triggerHint(extensionContext);
+                }
             }
         }
     } catch (err) {
@@ -856,7 +874,7 @@ function updateStatusBar(prediction) {
 
 async function activate(context) {
     console.log('🧠 NeuroMentor with VARK Behavior Tracker Activated');
-
+    extensionContext = context;
     // Register sidebar webview for cognitive state
     userViewProvider = new CognitiveStateViewProvider(context);
     context.subscriptions.push(
