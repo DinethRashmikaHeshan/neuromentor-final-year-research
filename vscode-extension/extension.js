@@ -1,18 +1,8 @@
 const vscode = require('vscode');
 const axios = require('axios');
 
-const API_BASE_URL = 'https://neuromentor-backend--8u5ar44.thankfulcoast-1d37f0d2.eastasia.azurecontainerapps.io/api';
-const COGNITIVE_BACKEND_URL = 'https://Urindu-Cognitive-Load-Inference-Engine.hf.space/predict';
+const BACKEND_URL = 'https://Urindu-Cognitive-Load-Inference-Engine.hf.space/predict';
 const HF_TOKEN = '';
-
-// Cognitive state colors
-const stateColors = {
-    confused: '#e74c3c',
-    relaxed: '#27ae60',
-    focused: '#2980b9',
-    active_thinking: '#f39c12',
-    neutral: '#7f8c8d',
-};
 
 // Behavior tracking variables
 let keystrokes = 0;
@@ -26,11 +16,6 @@ let currentUser = null;
 let authToken = null;
 let userViewProvider = null;
 let authPanel = null;
-let statusBarItem = null;
-
-// Cognitive state tracking
-let currentPrediction = 'Waiting for data...';
-let currentProbabilities = null;
 
 class AuthWebviewProvider {
     constructor(context) {
@@ -386,22 +371,13 @@ class CognitiveStateViewProvider {
 
     resolveWebviewView(webviewView) {
         this._webviewView = webviewView;
+
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: []
         };
-        webviewView.webview.html = this.getHtml();
 
-        // Handle messages from the webview
-        webviewView.webview.onDidReceiveMessage(async (message) => {
-            if (message.command === 'logout') {
-                await logout(this._context);
-            } else if (message.command === 'sendBehavior') {
-                await sendBehaviorData();
-            } else if (message.command === 'openAuth') {
-                await openWebAuthenticator(this._context);
-            }
-        });
+        webviewView.webview.html = this.getHtml();
     }
 
     updateView() {
@@ -411,96 +387,6 @@ class CognitiveStateViewProvider {
     }
 
     getHtml() {
-        // Show login prompt if not authenticated
-        if (!authToken || !currentUser) {
-            return `<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--vscode-editor-background);
-            color: var(--vscode-editor-foreground);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #003f87 0%, #0078d4 50%, #00a8e8 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: white;
-            font-weight: bold;
-        }
-        h2 { font-size: 18px; margin-bottom: 10px; font-weight: 600; }
-        p { font-size: 13px; color: var(--vscode-descriptionForeground); margin-bottom: 25px; }
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-        button {
-            background: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none;
-            padding: 10px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        button:hover { background: var(--vscode-button-hoverBackground); }
-        button.secondary {
-            background: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
-        }
-        button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
-    </style>
-</head>
-<body>
-    <div class="logo">◎</div>
-    <h2>NeuroMentor</h2>
-    <p>Track your learning style through your coding behavior</p>
-    <div class="button-group">
-        <button onclick="login()">Login</button>
-        <button class="secondary" onclick="register()">Register</button>
-    </div>
-
-    <script>
-        const vscode = acquireVsCodeApi();
-
-        function login() {
-            console.log('User clicked login');
-            vscode.postMessage({ command: 'openAuth' });
-        }
-
-        function register() {
-            console.log('User clicked register');
-            vscode.postMessage({ command: 'openAuth' });
-        }
-    </script>
-</body>
-</html>`;
-        }
-
-        // Show authenticated view with profile, learning style, and cognitive state
-        const learningStyle = currentUser?.learningStyle || 'Not Identified';
-        const styleDescription = getLearningStyleDescription(learningStyle);
         const prediction = currentPrediction;
         const probabilities = currentProbabilities;
         const color = stateColors[prediction] || '#555';
@@ -531,21 +417,17 @@ class CognitiveStateViewProvider {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: var(--vscode-editor-background);
         color: var(--vscode-editor-foreground);
-        padding: 15px;
+        padding: 16px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        min-height: 100vh;
+        gap: 16px;
     }
-    .header {
-        text-align: center;
-        margin-bottom: 15px;
-    }
+    .header { text-align: center; }
     .logo {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         margin: 0 auto 10px;
-        background: linear-gradient(135deg, #003f87 0%, #00a8e8 50%, #00d9ff 100%);
+        background: linear-gradient(135deg, #003f87, #0078d4, #00a8e8);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -554,51 +436,31 @@ class CognitiveStateViewProvider {
         color: white;
         font-weight: bold;
     }
-    .header h2 { font-size: 16px; margin-bottom: 5px; }
-    .header p { font-size: 12px; color: var(--vscode-descriptionForeground); }
-    .content { flex: 1; }
-    
-    .section {
+    .header h2 { font-size: 16px; font-weight: 700; }
+    .header p { font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 3px; }
+
+    .state-card {
         background: var(--vscode-list-activeSelectionBackground);
-        border-radius: 6px;
-        padding: 12px;
-        margin-bottom: 12px;
+        border-radius: 8px;
+        padding: 14px;
         text-align: center;
     }
-    .section-label {
+    .state-label-sm {
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--vscode-descriptionForeground);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
-    .learning-style {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--vscode-terminal-ansiBlue);
-        text-transform: uppercase;
-    }
-    .learning-style.not-identified {
-        color: var(--vscode-descriptionForeground);
-        font-size: 16px;
-    }
-    .style-description {
-        font-size: 11px;
-        color: var(--vscode-editor-foreground);
-        line-height: 1.4;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    
     .state-value {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 700;
         text-transform: capitalize;
-        padding: 6px 12px;
+        padding: 6px 14px;
         border-radius: 20px;
         display: inline-block;
         background: rgba(0,0,0,0.08);
+        transition: color 0.3s;
         color: ${color};
         box-shadow: 0 0 10px ${color}44;
     }
@@ -611,24 +473,24 @@ class CognitiveStateViewProvider {
         margin-right: 6px;
         box-shadow: 0 0 6px ${color};
     }
-    
+
     .probabilities h3 {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.4px;
         color: var(--vscode-descriptionForeground);
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
     .proba-row {
         display: flex;
         align-items: center;
-        gap: 4px;
-        margin-bottom: 5px;
-        font-size: 11px;
+        gap: 6px;
+        margin-bottom: 7px;
     }
     .state-label {
-        width: 90px;
+        font-size: 11px;
+        width: 110px;
         flex-shrink: 0;
         text-transform: capitalize;
         color: var(--vscode-editor-foreground);
@@ -636,20 +498,20 @@ class CognitiveStateViewProvider {
     .bar-bg {
         flex: 1;
         background: rgba(255,255,255,0.1);
-        border-radius: 3px;
-        height: 6px;
+        border-radius: 4px;
+        height: 7px;
         overflow: hidden;
     }
     .bar-fill {
         height: 100%;
-        border-radius: 3px;
+        border-radius: 4px;
         transition: width 0.4s ease;
     }
     .pct-label {
-        width: 32px;
+        font-size: 11px;
+        width: 38px;
         text-align: right;
         color: var(--vscode-descriptionForeground);
-        font-size: 10px;
     }
     .hint {
         font-size: 12px;
@@ -657,88 +519,26 @@ class CognitiveStateViewProvider {
         font-style: italic;
         text-align: center;
     }
-    
-    .footer {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    button {
-        padding: 9px 15px;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-    }
-    .btn-primary {
-        background: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
-    }
-    .btn-primary:hover {
-        background: var(--vscode-button-hoverBackground);
-    }
-    .btn-danger {
-        background: #d93439;
-        color: white;
-    }
-    .btn-danger:hover {
-        background: #c91f27;
-    }
 </style>
 </head>
 <body>
     <div class="header">
         <div class="logo">🧠</div>
-        <h2>${currentUser?.name || 'User'}</h2>
-        <p>${currentUser?.email || 'user@example.com'}</p>
+        <h2>NeuroMentor</h2>
+        <p>Real-time Cognitive State Detection</p>
     </div>
 
-    <div class="content">
-        <div class="section">
-            <div class="section-label">Your Learning Style</div>
-            <div class="learning-style ${learningStyle === 'Not Identified' ? 'not-identified' : ''}">
-                ${learningStyle}
-            </div>
-            ${styleDescription ? `<div class="style-description">${styleDescription}</div>` : ''}
-        </div>
-
-        <div class="section">
-            <div class="section-label">Current Cognitive State</div>
-            <div class="state-value">
-                <span class="status-dot"></span>${prediction}
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="probabilities">
-                <h3>Confidence Scores</h3>
-                ${probaRows}
-            </div>
+    <div class="state-card">
+        <div class="state-label-sm">Current Cognitive State</div>
+        <div class="state-value">
+            <span class="status-dot"></span>${prediction}
         </div>
     </div>
 
-    <div class="footer">
-        <button class="btn-primary" onclick="sendBehavior()">Send Data Now</button>
-        <button class="btn-danger" onclick="logout()">Logout</button>
+    <div class="probabilities">
+        <h3>Confidence Scores</h3>
+        ${probaRows}
     </div>
-
-    <script>
-        const vscode = acquireVsCodeApi();
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                vscode.postMessage({ command: 'logout' });
-            }
-        }
-
-        function sendBehavior() {
-            vscode.postMessage({ command: 'sendBehavior' });
-        }
-    </script>
 </body>
 </html>`;
     }
@@ -746,17 +546,21 @@ class CognitiveStateViewProvider {
 
 async function sendEventToBackend(event) {
     try {
-        const response = await fetch(COGNITIVE_BACKEND_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${HF_TOKEN}`,
-            },
-            body: JSON.stringify(event),
-        });
+        authToken = await secretStorage.get('vark-auth-token');
+        currentUser = JSON.parse(await secretStorage.get('vark-user') || '{}');
+        console.log('[Init] Loaded existing auth:', currentUser?.email);
+        // authToken = null;
+        // currentUser = null;
+        // console.log('[Init] Starting fresh - no cached auth');
+        if (authToken && currentUser?.id) {
+            await updateUserVarkStyle();  // Fetch latest VARK style
+        }
+    } catch (error) {
+        console.log('[Init] No existing auth found:', error.message);
+    }
 
         if (!response.ok) {
-            console.error('[Cognitive] Response not ok:', response.status);
+            console.warn('[Cognitive] Backend responded with', response.status);
             return;
         }
 
@@ -764,9 +568,13 @@ async function sendEventToBackend(event) {
 
         if (data.prediction) {
             currentPrediction = data.prediction;
-            currentProbabilities = data.probabilities;
-            console.log('[Cognitive] Prediction:', currentPrediction);
-            updateStatusBar(currentPrediction);
+            currentProbabilities = data.probabilities || null;
+
+            if (userViewProvider) {
+                userViewProvider.updateView();
+            }
+
+            updateStatusBar(data.prediction);
         }
     } catch (err) {
         console.error('[Cognitive] Error sending event:', err.message);
@@ -789,52 +597,37 @@ function updateStatusBar(prediction) {
 }
 
 async function activate(context) {
-    console.log('🧠 NeuroMentor with VARK Behavior Tracker Activated');
+    console.log('🧠 NeuroMentor Cognitive Tracker Activated');
 
-    // Register sidebar webview for cognitive state
+    // Register sidebar webview
     userViewProvider = new CognitiveStateViewProvider(context);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('varkUserView', userViewProvider)
     );
 
-    // Status bar item for cognitive state
+    // Status bar item
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.text = '$(circle-outline) Cognitive: Waiting...';
     statusBarItem.tooltip = 'NeuroMentor Cognitive State';
     statusBarItem.show();
     context.subscriptions.push(statusBarItem);
 
-    // Try to load existing token from secure storage
-    const secretStorage = context.secrets;
-    try {
-        authToken = await secretStorage.get('vark-auth-token');
-        currentUser = JSON.parse(await secretStorage.get('vark-user') || '{}');
-        console.log('[Init] Loaded existing auth:', currentUser?.email);
-        // authToken = null;
-        // currentUser = null;
-        // console.log('[Init] Starting fresh - no cached auth');
-        if (authToken && currentUser?.id) {
-            await updateUserVarkStyle();
-        }
-    } catch (error) {
-        console.log('[Init] No existing auth found:', error.message);
-    }
-
-    // Register commands
+    // Track text changes (code_edit / backspace_pressed)
     context.subscriptions.push(
-        vscode.commands.registerCommand('varkBehavior.login', () => {
-            console.log('[Command] Login triggered');
-            openWebAuthenticator(context);
-        }),
-        vscode.commands.registerCommand('varkBehavior.register', () => {
-            console.log('[Command] Register triggered');
-            openWebAuthenticator(context);
-        }),
-        vscode.commands.registerCommand('varkBehavior.logout', () => {
-            console.log('[Command] Logout triggered');
-            logout(context);
-        }),
-        vscode.commands.registerCommand('varkBehavior.sendNow', sendBehaviorData)
+        vscode.workspace.onDidChangeTextDocument(event => {
+            for (const change of event.contentChanges) {
+                const eventType = change.text === '' ? 'backspace_pressed' : 'code_edit';
+                sendEventToBackend({
+                    event_timestamp: Date.now() / 1000,
+                    event_type: eventType,
+                    event_details: {
+                        length: change.text.length,
+                        range: change.range,
+                        text: change.text,
+                    },
+                });
+            }
+        })
     );
 
     // Show login/register if not authenticated
@@ -848,58 +641,8 @@ async function activate(context) {
             userViewProvider.updateView();
         }
         vscode.window.showInformationMessage(`Welcome back, ${currentUser.name}!`);
-    }
-
-    // Track text changes for cognitive backend
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeTextDocument(event => {
-            for (const change of event.contentChanges) {
-                keystrokes += change.text.length;
-                const trimmed = change.text.trim();
-                if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
-                    commentLines++;
-                }
-                lastActivityTime = Date.now();
-                
-                // Send to cognitive backend
-                sendEventToBackend({
-                    type: 'code_edit',
-                    text_length: change.text.length,
-                });
-            }
-        })
-    );
-
-    // Track cursor movement
-    context.subscriptions.push(
-        vscode.window.onDidChangeTextEditorSelection(event => {
-            if (event.selections.length > 0) {
-                sendEventToBackend({
-                    type: 'cursor_move',
-                    selections_count: event.selections.length,
-                });
-            }
-        })
-    );
-
-    // Track editor focus
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (editor) {
-                sendEventToBackend({
-                    type: 'editor_focus',
-                    language: editor.document.languageId,
-                });
-            }
-        })
-    );
-
-    // Link hinting module if present
-    try {
-        require('./hinting.js').activateHinting(context);
-    } catch (e) {
-        console.log('[Init] hinting.js not found, skipping.');
-    }
+    }// THE ONLY ADDED LINE: Link your hinting module!
+    require('./hinting.js').activateHinting(context);
 }
 
 async function openWebAuthenticator(context) {
@@ -937,6 +680,8 @@ function getLearningStyleDescription(style) {
     
     return descriptions[style?.toUpperCase()] || null;
 }
+
+
 
 async function updateUserVarkStyle() {
     try {
@@ -981,7 +726,7 @@ function startBehaviorTracking(context) {
     const idleCheckInterval = setInterval(() => {
         const timeSinceLastActivity = (Date.now() - lastActivityTime) / 1000;
         if (timeSinceLastActivity > 30) {
-            idleTime += 10;
+            idleTime += 10; // Add 10 seconds to idle counter
         }
     }, 10000);
     const idleCheckDisposable = { dispose: () => clearInterval(idleCheckInterval) };
@@ -991,58 +736,36 @@ function startBehaviorTracking(context) {
     const timerDisposable = { dispose: () => clearInterval(timer) };
 
     context.subscriptions.push(
-        textChangeDisposable,
-        visibleRangeDisposable,
-        debugSessionDisposable,
-        idleCheckDisposable,
-        timerDisposable
+        vscode.window.onDidChangeTextEditorSelection(event => {
+            const pos = event.selections[0]?.active;
+            if (!pos) return;
+            sendEventToBackend({
+                event_timestamp: Date.now() / 1000,
+                event_type: 'cursor_move',
+                event_details: {
+                    position: { lineNumber: pos.line + 1, column: pos.character + 1 },
+                },
+            });
+        })
     );
-}
 
-async function sendBehaviorData() {
-    if (!authToken || !currentUser) {
-        console.log('[Tracking] Not authenticated, skipping behavior send');
-        return;
-    }
+    // Track editor focus
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (!editor) return;
+            sendEventToBackend({
+                event_timestamp: Date.now() / 1000,
+                event_type: 'editor_focus',
+                event_details: {},
+            });
+        })
+    );
 
-    const sessionDuration = (Date.now() - startTime) / 1000;
-    const timestamp = new Date().toISOString();
-
-    const payload = {
-        userId: currentUser.id,
-        keystrokes,
-        scrollEvents,
-        idleTime,
-        compileCount,
-        commentLines,
-        sessionDuration,
-        timestamp
-    };
-
+    // Link hinting module if present
     try {
-        const response = await axios.post(`${API_BASE_URL}/behavior`, payload, {
-            headers: { Authorization: `Bearer ${authToken}` }
-        });
-
-        console.log('[Tracking] Behavior data sent successfully:', payload);
-
-        // Update VARK style from response if available
-        if (response.data?.predicted_style) {
-            currentUser.learningStyle = response.data.predicted_style;
-            console.log('[Tracking] VARK Style updated:', currentUser.learningStyle);
-        }
-
-        vscode.window.showInformationMessage(
-            `Behavior logged! Current Learning Style: ${currentUser.learningStyle || 'Calculating...'}`
-        );
-
-        // Reset counters for next tracking period
-        keystrokes = scrollEvents = idleTime = compileCount = commentLines = 0;
-        startTime = Date.now();
-        lastActivityTime = Date.now();
-    } catch (error) {
-        console.log('[Tracking] Failed to send behavior data:', error.message);
-        vscode.window.showErrorMessage(`Failed to send behavior data: ${error.message}`);
+        require('./hinting.js').activateHinting(context);
+    } catch (e) {
+        console.log('[Init] hinting.js not found, skipping.');
     }
 }
 
@@ -1050,29 +773,41 @@ async function logout(context) {
     try {
         console.log('[Auth] Starting logout process');
 
-        // Clear secure storage
+        // Clear secure storage FIRST before clearing in-memory variables
         try {
             await context.secrets.delete('vark-auth-token');
             await context.secrets.delete('vark-user');
             console.log('[Auth] Cleared secure storage');
+
+            // Double-check the secret is actually gone
+            const checkToken = await context.secrets.get('vark-auth-token');
+            if (checkToken && checkToken.trim() !== '') {
+                // Fallback: overwrite with empty values if delete didn't work
+                await context.secrets.store('vark-auth-token', '');
+                await context.secrets.store('vark-user', '{}');
+                console.warn('[Auth] Secret persisted after delete — overwrote with empty string');
+            }
         } catch (error) {
             console.error('[Auth] Error clearing secure storage:', error.message);
         }
 
-        // Clear in-memory state
+        // Now clear in-memory state AFTER storage is confirmed cleared
         authToken = null;
         currentUser = null;
         console.log('[Auth] Cleared in-memory auth variables');
 
-        // Force view update
+        // Force view update to show login prompt
         if (userViewProvider) {
             console.log('[Auth] Updating view after logout');
             userViewProvider.updateView();
+        } else {
+            console.log('[Auth] userViewProvider not available');
         }
 
+        // Small delay to ensure view updates before showing message
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        vscode.window.showInformationMessage('Logged out successfully. Click Login/Register to sign in again.');
+        vscode.window.showInformationMessage('Logged out successfully. Click Login/Register in the sidebar to sign in again.');
         console.log('[Auth] Logout completed successfully');
 
     } catch (error) {
@@ -1089,7 +824,6 @@ async function deactivate() {
             console.log('[Tracking] Could not send final data on deactivation');
         }
     }
-    console.log('🧠 NeuroMentor deactivated');
 }
 
 module.exports = { activate, deactivate };
