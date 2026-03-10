@@ -905,14 +905,15 @@ class ErrorAnalyzerProvider {
       .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
       .replace(/\n/g, "<br>");
 
-    const showVideo =
-      hintText.toLowerCase().includes("youtube") ||
-      hintText.toLowerCase().includes("watch") ||
-      (data.source && data.source.includes("GenAI"));
+    // 🎓 PEDAGOGICAL SCAFFOLDING UPDATE:
+    // Only show the YouTube video button if the user is in Level 1 (Confused)
+    const isLevel1 = currentPrediction === "confused";
+    const showVideo = isError && isLevel1;
 
     const videoQuery = tut
       ? `${tut.title} C programming fix`
       : "C programming tutorial";
+
     const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoQuery)}`;
 
     const errorBadge =
