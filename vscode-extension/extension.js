@@ -1256,35 +1256,52 @@ async function activate(context) {
 // ⚙️ HELPER FUNCTIONS (Team's Code)
 // ==========================================
 async function sendEventToBackend(event) {
-  try {
-    const response = await fetch(COGNITIVE_BACKEND_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${HF_TOKEN}`,
-      },
-      body: JSON.stringify(event),
-    });
+    try {
+        const response = await fetch(COGNITIVE_BACKEND_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${HF_TOKEN}`,
+            },
+            body: JSON.stringify(event),
+        });
 
-    if (!response.ok) {
-      return;
+        if (!response.ok) {
+            console.error('[Cognitive] Response not ok:', response.status);
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.prediction) {
+            const previousPrediction = currentPrediction; // Remember the last state
+            
+            currentPrediction = data.prediction;
+            currentProbabilities = data.probabilities;
+            
+            console.log('[Cognitive] Prediction:', currentPrediction);
+            updateStatusBar(currentPrediction);
+
+            if (userViewProvider) {
+                userViewProvider.updateView();
+            }
+
+            // --- THE REAL-TIME TRIGGER ---
+            // If they just became confused, instantly trigger your AI hint!
+            // Define the specific states that should trigger the AI
+            const triggerStates = ['confused', 'focused', 'overload'];
+
+            // Trigger if the current state is one of the target states
+            if (triggerStates.includes(currentPrediction)) {
+                console.log(`⚠️ State shifted to ${currentPrediction}! Triggering AI...`);
+                if (myHintingModule && myHintingModule.triggerHint) {
+                    myHintingModule.triggerHint(extensionContext);
+                }
+            }
+        }
+    } catch (err) {
+        console.error('[Cognitive] Error sending event:', err.message);
     }
-
-    const data = await response.json();
-
-    if (data.prediction) {
-      currentPrediction = data.prediction;
-      currentProbabilities = data.probabilities;
-      updateStatusBar(currentPrediction);
-
-      // Optional: You could refresh the UI here if you wanted the cognitive state to be live
-      if (userViewProvider) {
-        userViewProvider.updateView();
-      }
-    }
-  } catch (err) {
-    // console.error('[Cognitive] Error sending event:', err.message);
-  }
 }
 
 function updateStatusBar(prediction) {
