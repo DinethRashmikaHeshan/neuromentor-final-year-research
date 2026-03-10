@@ -381,14 +381,27 @@ class AuthWebviewProvider {
 class CognitiveStateViewProvider {
     constructor(context) {
         this._context = context;
+        this._webviewView = null;
     }
 
     resolveWebviewView(webviewView) {
+        this._webviewView = webviewView;
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: []
         };
         webviewView.webview.html = this.getHtml();
+
+        // Handle messages from the webview
+        webviewView.webview.onDidReceiveMessage(async (message) => {
+            if (message.command === 'logout') {
+                await logout(this._context);
+            } else if (message.command === 'sendBehavior') {
+                await sendBehaviorData();
+            } else if (message.command === 'openAuth') {
+                await openWebAuthenticator(this._context);
+            }
+        });
     }
 
     updateView() {
@@ -797,6 +810,9 @@ async function activate(context) {
         authToken = await secretStorage.get('vark-auth-token');
         currentUser = JSON.parse(await secretStorage.get('vark-user') || '{}');
         console.log('[Init] Loaded existing auth:', currentUser?.email);
+        // authToken = null;
+        // currentUser = null;
+        // console.log('[Init] Starting fresh - no cached auth');
         if (authToken && currentUser?.id) {
             await updateUserVarkStyle();
         }
