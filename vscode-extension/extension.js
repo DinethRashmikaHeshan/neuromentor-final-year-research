@@ -406,7 +406,26 @@ class CognitiveStateViewProvider {
 
     updateView() {
         if (this._webviewView) {
-            this._webviewView.webview.html = this.getHtml();
+            // FIX: Instead of replacing full HTML (which causes flicker and loses state),
+            // send a message to the webview to update only the cognitive state parts.
+            // If not yet authenticated, fall back to full HTML replacement.
+            if (!authToken || !currentUser) {
+                this._webviewView.webview.html = this.getHtml();
+                return;
+            }
+
+            const prediction = currentPrediction;
+            const probabilities = currentProbabilities;
+            const color = stateColors[prediction] || '#555';
+
+            // Send a live update message to the existing webview DOM
+            this._webviewView.webview.postMessage({
+                command: 'updateCognitiveState',
+                prediction,
+                probabilities,
+                color,
+                stateColors,
+            });
         }
     }
 
@@ -599,17 +618,13 @@ class CognitiveStateViewProvider {
         border-radius: 20px;
         display: inline-block;
         background: rgba(0,0,0,0.08);
-        color: ${color};
-        box-shadow: 0 0 10px ${color}44;
     }
     .status-dot {
         display: inline-block;
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: ${color};
         margin-right: 6px;
-        box-shadow: 0 0 6px ${color};
     }
     
     .probabilities h3 {
@@ -708,15 +723,15 @@ class CognitiveStateViewProvider {
 
         <div class="section">
             <div class="section-label">Current Cognitive State</div>
-            <div class="state-value">
-                <span class="status-dot"></span>${prediction}
+            <div class="state-value" id="stateValue" style="color:${color}; box-shadow: 0 0 10px ${color}44;">
+                <span class="status-dot" id="statusDot" style="background:${color}; box-shadow: 0 0 6px ${color};"></span><span id="predictionText">${prediction}</span>
             </div>
         </div>
 
         <div class="section">
             <div class="probabilities">
                 <h3>Confidence Scores</h3>
-                ${probaRows}
+                <div id="probaContainer">${probaRows}</div>
             </div>
         </div>
     </div>
@@ -728,6 +743,7 @@ class CognitiveStateViewProvider {
 
     <script>
         const vscode = acquireVsCodeApi();
+        const stateColors = ${JSON.stringify(stateColors)};
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -738,6 +754,51 @@ class CognitiveStateViewProvider {
         function sendBehavior() {
             vscode.postMessage({ command: 'sendBehavior' });
         }
+
+        // FIX: Listen for live cognitive state updates from the extension host
+        // instead of requiring a full HTML reload.
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'updateCognitiveState') {
+                const { prediction, probabilities, color } = message;
+
+                // Update state pill
+                const stateValue = document.getElementById('stateValue');
+                const statusDot = document.getElementById('statusDot');
+                const predictionText = document.getElementById('predictionText');
+
+                if (stateValue) {
+                    stateValue.style.color = color;
+                    stateValue.style.boxShadow = '0 0 10px ' + color + '44';
+                }
+                if (statusDot) {
+                    statusDot.style.background = color;
+                    statusDot.style.boxShadow = '0 0 6px ' + color;
+                }
+                if (predictionText) {
+                    predictionText.textContent = prediction;
+                }
+
+                // Update probability bars
+                if (probabilities) {
+                    const container = document.getElementById('probaContainer');
+                    if (container) {
+                        container.innerHTML = Object.entries(probabilities).map(([state, val]) => {
+                            const pct = (val * 100).toFixed(1);
+                            const barColor = stateColors[state] || '#999';
+                            return \`
+                                <div class="proba-row">
+                                    <span class="state-label">\${state}</span>
+                                    <div class="bar-bg">
+                                        <div class="bar-fill" style="width:\${pct}%; background:\${barColor};"></div>
+                                    </div>
+                                    <span class="pct-label">\${pct}%</span>
+                                </div>\`;
+                        }).join('');
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>`;
@@ -767,6 +828,11 @@ async function sendEventToBackend(event) {
             currentProbabilities = data.probabilities;
             console.log('[Cognitive] Prediction:', currentPrediction);
             updateStatusBar(currentPrediction);
+
+            // FIX: Push live update to sidebar webview without full HTML reload
+            if (userViewProvider) {
+                userViewProvider.updateView();
+            }
         }
     } catch (err) {
         console.error('[Cognitive] Error sending event:', err.message);
@@ -810,9 +876,6 @@ async function activate(context) {
         authToken = await secretStorage.get('vark-auth-token');
         currentUser = JSON.parse(await secretStorage.get('vark-user') || '{}');
         console.log('[Init] Loaded existing auth:', currentUser?.email);
-        // authToken = null;
-        // currentUser = null;
-        // console.log('[Init] Starting fresh - no cached auth');
         if (authToken && currentUser?.id) {
             await updateUserVarkStyle();
         }
