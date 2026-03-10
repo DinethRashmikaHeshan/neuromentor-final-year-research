@@ -61,21 +61,7 @@
         "title": "NeuroMentor: Analyze Code",
         "icon": "$(play)"
       }
-    ],
-    "menus": {
-      "editor/title": [
-        {
-          "command": "neuromentor.getHint",
-          "group": "navigation",
-          "when": "resourceExtname == .c"
-        },
-        {
-          "command": "neuromentor.analyze",
-          "group": "navigation@1",
-          "when": "resourceExtname == .c"
-        }
-      ]
-    }
+    ]
   },
   "dependencies": {
     "axios": "^1.6.0",
