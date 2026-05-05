@@ -111,6 +111,8 @@ class AuthWebviewProvider {
         );
 
         console.log("[Auth] Successfully logged in:", currentUser.email);
+        const usertest= await this._context.secrets.get("vark-user");
+        console.log("[Auth] Retrieved user data:", usertest);
         authPanel?.dispose();
 
         // Update UI
@@ -437,7 +439,13 @@ class CognitiveStateViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
       if (message.command === "logout") {
-        await logout(this._context);
+          const choice = await vscode.window.showWarningMessage(
+            'Are you sure you want to logout?',
+            'Yes', 'No'
+          );
+          if (choice === 'Yes') {
+            await logout(this._context);
+          }
       } else if (message.command === "sendBehavior") {
         await sendBehaviorData();
       } else if (message.command === "openAuth") {
@@ -781,13 +789,11 @@ class CognitiveStateViewProvider {
         }
 
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                vscode.postMessage({ command: 'logout' });
-            }
+          vscode.postMessage({ command: 'logout' });
         }
 
         function sendBehavior() {
-            vscode.postMessage({ command: 'sendBehavior' });
+          vscode.postMessage({ command: 'sendBehavior' });
         }
 
         // FIX: Listen for live cognitive state updates from the extension host
@@ -1105,6 +1111,8 @@ async function activate(context) {
     if (authToken && currentUser?.id) {
       await updateUserVarkStyle();
     }
+    // authToken = null;
+    // currentUser = null;
   } catch (error) {
     console.log("[Init] No existing auth found:", error.message);
   }
@@ -1440,6 +1448,9 @@ async function sendBehaviorData() {
       headers: { Authorization: `Bearer ${authToken}` },
     });
 
+    console.log("[Behavior] Data sent:", payload);
+    console.log("[Behavior] Server response:", response.data);
+
     if (response.data?.predicted_style) {
       currentUser.learningStyle = response.data.predicted_style;
     }
@@ -1459,26 +1470,24 @@ async function sendBehaviorData() {
 }
 
 async function logout(context) {
-  try {
-    try {
-      await context.secrets.delete("vark-auth-token");
-      await context.secrets.delete("vark-user");
-    } catch (error) {}
+  authToken = null;
+  currentUser = null;
 
-    authToken = null;
-    currentUser = null;
+  await context.secrets.delete("vark-auth-token").catch(() => {});
+  await context.secrets.delete("vark-user").catch(() => {});
 
-    if (userViewProvider) {
-      userViewProvider.updateView();
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    vscode.window.showInformationMessage(
-      "Logged out successfully. Click Login/Register to sign in again.",
-    );
-  } catch (error) {
-    vscode.window.showErrorMessage(`Logout error: ${error.message}`);
+  if (userViewProvider) {
+    userViewProvider.updateView();
   }
+
+  if (statusBarItem) {
+    statusBarItem.text = "$(circle-outline) Cognitive: Waiting...";
+    statusBarItem.color = undefined;
+  }
+
+  vscode.window.showInformationMessage(
+    "Logged out successfully. Click Login/Register to sign in again."
+  );
 }
 
 async function deactivate() {
