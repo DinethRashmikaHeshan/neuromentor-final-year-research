@@ -118,7 +118,7 @@ def format_hint_to_vark(code: str, vark_style: str, base_hint: str):
     """
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash', # Optimized for speed
+            model='gemini-2.5-flash-lite', # Optimized for speed
             contents=prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json")
         )

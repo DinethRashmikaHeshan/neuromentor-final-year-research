@@ -10,7 +10,7 @@ const COGNITIVE_BACKEND_URL =
 const ERROR_BACKEND_URL =
   "https://vishwak03-error-driven-learning-reinforcement-engine.hf.space/predict";
 const DASHBOARD_URL = "https://neuromentor-dashboard.vercel.app/";
-const HF_TOKEN = "";
+const HF_TOKEN = "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";
 
 
 // Cognitive state colors
@@ -112,7 +112,9 @@ class AuthWebviewProvider {
 
         console.log("[Auth] Successfully logged in:", currentUser.email);
         const usertest= await this._context.secrets.get("vark-user");
+        const tokenTest = await this._context.secrets.get("vark-auth-token");
         console.log("[Auth] Retrieved user data:", usertest);
+        console.log("[Auth] Retrieved token:", tokenTest);
         authPanel?.dispose();
 
         // Update UI
@@ -1076,6 +1078,8 @@ class ErrorAnalyzerProvider {
 // 🚀 EXTENSION ACTIVATION
 // ==========================================
 async function activate(context) {
+
+  extensionContext = context;
   console.log("🧠 NeuroMentor with VARK Behavior Tracker Activated");
 
   // 1. Register Team's Cognitive Webview
@@ -1254,6 +1258,8 @@ async function activate(context) {
 
   // Link hinting module if present
   try {
+    const mytoken = await context.secrets.get("vark-auth-token");
+    console.log("token awoth goda",mytoken)
     require("./hinting.js").activateHinting(context);
   } catch (e) {
     console.log("[Init] hinting.js not found, skipping.");
@@ -1299,11 +1305,12 @@ async function sendEventToBackend(event) {
             // Define the specific states that should trigger the AI
             const triggerStates = ['confused', 'focused', 'overload'];
 
+            // extensionContext = context; // Make sure we have access to the extension context for triggering hints
             // Trigger if the current state is one of the target states
             if (triggerStates.includes(currentPrediction)) {
                 console.log(`⚠️ State shifted to ${currentPrediction}! Triggering AI...`);
                 if (myHintingModule && myHintingModule.triggerHint) {
-                    myHintingModule.triggerHint(extensionContext);
+                    myHintingModule.triggerHint(extensionContext, currentPrediction);
                 }
             }
         }

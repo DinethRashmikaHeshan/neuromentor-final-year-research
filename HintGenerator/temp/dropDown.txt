@@ -1,0 +1,14 @@
+<select class="demo-select" id="demo-dropdown" onchange="forceStyle(this.value)">
+                        <option value="">Auto Mode</option>
+                        <option value="V">Visual</option>
+                        <option value="A">Audio</option>
+                        <option value="R">Reading</option>
+                        <option value="K">Kinesthetic</option>
+                    </select>
+
+
+
+    az containerapp update \
+  --name llama-app \
+  --resource-group llama-rg \
+  --set-env-vars key="YOUR_GOOGLE_API_KEY"

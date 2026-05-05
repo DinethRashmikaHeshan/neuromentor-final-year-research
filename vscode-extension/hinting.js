@@ -8,6 +8,8 @@ let idleTimer = null;
 let manualStyleOverride = null; 
 let activeSocket = null; 
 
+let extensionContext = null;
+
 // --- 1. WATCH FOR TYPING ---
 vscode.workspace.onDidChangeTextDocument(event => {
     const editor = vscode.window.activeTextEditor;
@@ -20,7 +22,14 @@ vscode.workspace.onDidChangeTextDocument(event => {
     }
 });
 
-async function triggerHint(context) {
+async function triggerHint(context, predictedState) {
+
+    const ctx = context || extensionContext;  // ← ADD THIS LINE
+    if (!ctx) {                                 // ← ADD THIS LINE
+        console.error("[Hinting] No context!");  // ← ADD THIS LINE
+        return;                                  // ← ADD THIS LINE
+    }                                           // ← ADD THIS LINE
+
     if (panel) return; 
 
     const editor = vscode.window.activeTextEditor;
@@ -61,11 +70,11 @@ async function triggerHint(context) {
     });
 
     panel.webview.postMessage({ command: 'loading', attempt: currentAttempt });
-    await fetchHintAndStartTimer(context, lastCode);
+    await fetchHintAndStartTimer(context, lastCode, predictedState);
 }
 
 // --- 2. FETCH HINT AND START THE CLOCK ---
-async function fetchHintAndStartTimer(context, studentCode) {
+async function fetchHintAndStartTimer(context, studentCode, predictedState) {
     let varkStyle = ""; 
     let authToken = ""; 
     let cognitiveState = "";
@@ -96,9 +105,9 @@ async function fetchHintAndStartTimer(context, studentCode) {
                     const user = JSON.parse(userJsonResult);
                     console.log('[DEBUG] Parsed user:', user);
                     
-                    const styleMap = { 'VISUAL': 'V', 'AURAL': 'A', 'READING/WRITING': 'R', 'KINESTHETIC': 'K', 'MULTIMODAL': 'V' };
+                    const styleMap = { 'VISUAL': 'V', 'AURAL': 'A', 'READ/WRITE': 'R', 'KINESTHETIC': 'K', 'MULTIMODAL': 'V' };
                     varkStyle = styleMap[user.learningStyle?.toUpperCase()] || "";
-                    cognitiveState = user.cognitiveState || "";
+                    cognitiveState = predictedState || "";
                     
                     console.log('[DEBUG] Extracted varkStyle:', varkStyle, '| cognitiveState:', cognitiveState);
                 } catch (parseErr) {
@@ -114,7 +123,8 @@ async function fetchHintAndStartTimer(context, studentCode) {
     }
 
     if (activeSocket) activeSocket.close();
-    activeSocket = new WebSocket('ws://127.0.0.1:8000/ws/hints');
+    // activeSocket = new WebSocket('ws://127.0.0.1:8000/ws/hints');
+    activeSocket = new WebSocket('wss://llama-app.lemonflower-bec54065.centralindia.azurecontainerapps.io/ws/hints');
     // activeSocket = new WebSocket("wss://llama-app.lemonflower-bec54065.centralindia.azurecontainerapps.io/ws/hints");
 
     activeSocket.on('open', () => {
@@ -200,13 +210,7 @@ function getWebviewContent() {
             <div class="header-row">
                 <div id="badge" class="vark-badge" style="background: gray;">Analyzing...</div>
                 <div class="header-controls">
-                    <select class="demo-select" id="demo-dropdown" onchange="forceStyle(this.value)">
-                        <option value="">Auto Mode</option>
-                        <option value="V">Visual</option>
-                        <option value="A">Audio</option>
-                        <option value="R">Reading</option>
-                        <option value="K">Kinesthetic</option>
-                    </select>
+        
                     <div id="attempt-badge" class="attempt-badge">Attempt: 1/3</div>
                 </div>
             </div>
@@ -360,4 +364,12 @@ function getWebviewContent() {
     </html>`;
 }
 
-module.exports = { triggerHint };
+
+
+
+async function activateHinting(context) {
+    extensionContext = context;
+    console.log("[Hinting] ✅ Module activated");
+}
+
+module.exports = { triggerHint , activateHinting};
