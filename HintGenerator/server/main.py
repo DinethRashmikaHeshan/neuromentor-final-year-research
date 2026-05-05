@@ -10,10 +10,11 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from llama_cpp import Llama
-
 import logging
 
-# --- LOAD SECURE API KEY ---
+import httpx  # replace or supplement `requests`
+
+# --- LOAD SECURE API KEY & CONFIG ---
 load_dotenv()
 API_KEY = os.getenv("key")
 client = genai.Client(api_key=API_KEY)
@@ -21,30 +22,28 @@ client = genai.Client(api_key=API_KEY)
 BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 HOSTED_URL = os.getenv("HOSTED_URL")
 
-# Configure logging (suppress most noise; we'll print only hints)
+# Configure logging to be clean for the demo
 logging.basicConfig(
-    level=logging.WARNING,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO,
+    format='%(levelname)s: %(message)s'
 )
 logger = logging.getLogger(__name__)
 
 CURRENT_COGNITIVE_STATE = "FOCUS"
 
+# --- MODULE 1 LISTENER (Cognitive State) ---
 async def listen_to_module1():
     global CURRENT_COGNITIVE_STATE
     uri = "ws://127.0.0.1:8001/ws/current_state"
-    logger.info(f"Starting listener for Module 1 at {uri}")
     while True:
         try:
             async with websockets.connect(uri) as websocket:
-                logger.info("Connected to Module 1 successfully")
+                logger.info("✅ Connected to Module 1 (Cognitive Engine)")
                 while True:
                     message = await websocket.recv()
                     data = json.loads(message)
                     CURRENT_COGNITIVE_STATE = data.get("state", "FOCUS").upper()
-                    logger.debug(f"Updated cognitive state to: {CURRENT_COGNITIVE_STATE}")
-        except Exception as e:
-            # logger.warning(f"Module 1 connection failed: {e}. Retrying in 2s...")
+        except Exception:
             await asyncio.sleep(2)
 
 @asynccontextmanager
@@ -55,17 +54,20 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# --- HEALTH CHECK ---
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
+# --- LOCAL AI MODEL ---
 llm = Llama(
-    model_path="./llama-3.2-3b-instruct.Q4_K_M.gguf", 
+    model_path="./model.gguf", 
     n_gpu_layers=-1, 
     n_ctx=2048,
     verbose=False 
 )
 
-
-
-
+# --- PREDEFINED HINT MATRIX ---
 HINT_MATRIX = {
     "missing_ampersand_scanf": {
         "FOCUS": {1: "Check your scanf arguments.", 2: "Your scanf is missing an address operator.", 3: "Add an '&' before the variable name in scanf."},
@@ -76,182 +78,162 @@ HINT_MATRIX = {
 
 def analyze_c_code(code: str):
     if re.search(r'scanf\s*\(\s*"[^"]+"\s*,\s*([A-Za-z0-9_]+)\s*\)', code):
-        logger.info("Detected error: missing_ampersand_scanf")
         return "missing_ampersand_scanf"
-    logger.debug("No specific error pattern detected")
     return None 
 
 def is_valid_c_code(code: str) -> bool:
-    if not code or len(code.strip()) < 5:
-        logger.debug("Code validation failed: empty or too short")
-        return False
-    c_keywords = ["#include", "main", "printf", "scanf", "return", "int ", "float ", "char ", "void ", "for(", "while(", "if("]
-    is_valid = any(keyword in code for keyword in c_keywords)
-    if not is_valid:
-        logger.debug("Code validation failed: no C keywords found")
-    else:
-        logger.debug("Code validation passed")
-    return is_valid
+    if not code or len(code.strip()) < 5: return False
+    c_keywords = ["#include", "main", "printf", "scanf", "return", "int ", "float ", "char ", "void "]
+    return any(keyword in code for keyword in c_keywords)
 
 def get_local_ai_hint(code: str, state: str, attempt: int) -> str:
-    prompt = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-You are an empathetic and expert C programming tutor. Analyze the student's code, cognitive state, and attempt number to provide a tailored, highly specific hint.
-
-### Input:
-Student Code:
-{code}
-
-Cognitive State: {state}
-Attempt Number: {attempt}
-
-### Response:
-"""
-    logger.debug(f"Calling local LLM for hint generation (state={state}, attempt={attempt})")
+    prompt = f"### Instruction:\nYou are an expert C tutor. Provide a short, empathetic hint for this code.\nState: {state}, Attempt: {attempt}\nCode: {code}\n### Response:\n"
     try:
-        output = llm(prompt, max_tokens=150, stop=["### Instruction:"], echo=False)
+        output = llm(prompt, max_tokens=100, stop=["### Instruction:"], echo=False)
         hint = output['choices'][0]['text'].strip()
-        # print hint explicitly for console visibility
-        print(f"🔍 Local LLM hint: {hint}")
-        logger.debug(f"Local LLM generated hint: {hint[:50]}...",{state})
+        print(f"🔍 Local LLM: {hint}")
         return hint
     except Exception as e:
-        logger.error(f"Error calling local LLM: {e}")
-        raise
+        logger.error(f"Local AI Error: {e}")
+        return "Check your syntax carefully."
 
+# --- VARK FORMATTER (Gemini) ---
 def format_hint_to_vark(code: str, vark_style: str, base_hint: str):
     prompt = f"""
-    You are a strict API formatting engine. Translate the C programming hint into the requested VARK learning style.
-    
-    Code Context: {code}
+    Translate this C hint into VARK style '{vark_style}'.
     Base Hint: "{base_hint}"
-    Requested Style: {vark_style}
     
-    MEDIA RULES:
-    - V: Output ONLY a valid Mermaid.js flowchart. Start with "flowchart TD;". Use SEMICOLONS (;) to separate statements, NOT newlines. Do not use markdown backticks. Example: flowchart TD; A[Bug] --> B[Fix];
-    - A: Output a conversational script designed to be read aloud.
-    - R: Output a clear, text-based explanation.
-    - K: Output a strict, step-by-step physical instruction on what the user must type.
+    RULES:
+    - V: ONLY a Mermaid flowchart. Start with 'flowchart TD;'. Use ';' to separate nodes.
+    - A: Conversational script for audio.
+    - R: Clear text explanation.
+    - K: Step-by-step physical typing instructions. Use \\n for steps.
 
-    You must output ONLY a valid JSON object. No extra text.
+    Output valid JSON:
     {{
-        "hint_text": "A short 1-sentence empathetic hint.",
+        "hint_text": "1-sentence hint",
         "vark_mode": "{vark_style}",
-        "media_content": "The media data."
+        "media_content": "VARK data"
     }}
     """
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash', # Optimized for speed
             contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.1, 
-            )
+            config=types.GenerateContentConfig(response_mime_type="application/json")
         )
+        payload = json.loads(response.text.strip())
         
-        clean_text = response.text.strip()
-        if clean_text.startswith("```json"):
-            clean_text = clean_text[7:]
-        if clean_text.endswith("```"):
-            clean_text = clean_text[:-3]
+        # BULLETPROOF FIX: Convert any string newlines to real newlines
+        if payload.get("media_content"):
+            payload["media_content"] = payload["media_content"].replace("\\n", "\n")
             
-        payload = json.loads(clean_text.strip())
         return payload
-        
     except Exception as e:
-        print(f"❌ JSON crashed: {e}")
-        # BULLETPROOF FAIL-SAFE FOR THE DEMO
-        if vark_style == 'V':
-            return {"hint_text": base_hint, "vark_mode": "V", "media_content": "flowchart TD; A[Error Detected] --> B[Check Syntax]; B --> C[Apply Fix];"}
+        logger.error(f"❌ Gemini Error: {e}")
         return {"hint_text": base_hint, "vark_mode": "R", "media_content": base_hint}
 
+# --- MAIN WEBSOCKET ---
 @app.websocket("/ws/hints")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    logger.info("New WebSocket client connected for hints")
+    logger.info("🚀 VS Code Client Connected")
     
     try:
         while True:
             raw_data = await websocket.receive_text()
-            data = json.loads(raw_data)
             
-            code = data.get('code', '')
-            attempt = min(int(data.get('attempt', 1)), 3)
-            state = CURRENT_COGNITIVE_STATE
-            
-            # --- EXTRACT THE DYNAMIC TOKEN FROM VS CODE ---
-            client_token = data.get('token', '')
-            actual_token = client_token if client_token else BEARER_TOKEN # Fallback to .env if missing
-            
-            logger.info(f"Received hint request - attempt: {attempt}, cognitive state: {state}")
-            
-            vark_style = None
-            
-            # --- PRIORITY 1: ASK MODULE 2 (FRIEND's API) FIRST ---
+            # FIX 5: Guard against invalid JSON
             try:
-                print("⏳ Fetching style from Module 2 API first...")
-                # USE THE DYNAMIC TOKEN HERE!
-                headers = {"Authorization": f"Bearer {actual_token}"}
-                
-                vark_res = await asyncio.to_thread(requests.get, HOSTED_URL, headers=headers, timeout=10)
-                
-                module_2_data = vark_res.json()
-                print(f"📦 Module 2 replied with: {module_2_data}")
-                
-                raw_style = module_2_data.get("predicted_style", module_2_data.get("vark", "")).upper()
-                style_map = {'VISUAL': 'V', 'AURAL': 'A', 'READING/WRITING': 'R', 'KINESTHETIC': 'K', 'MULTIMODAL': 'V'}
-                vark_style = style_map.get(raw_style, raw_style)
-                
-                if vark_style in ['V', 'A', 'R', 'K']:
-                    print(f"✅ Successfully using Module 2 Style: {vark_style}")
-                else:
-                    vark_style = None 
-                    
-            except Exception as e:
-                print(f"⚠️ Module 2 API Fetch Failed: {e}")
-                vark_style = None 
-
-            # --- PRIORITY 2: FALLBACK TO VS CODE DROPDOWN ---
-            if not vark_style:
-                requested_style = data.get('vark', '')
-                if requested_style in ['V', 'A', 'R', 'K']:
-                    vark_style = requested_style
-                    print(f"🔄 Fallback: Using VS Code dropdown override: {vark_style}")
-                else:
-                    vark_style = "R"
-                    print("⚠️ Fallback: Defaulting to R")
-            
-            # -----------------------------------------------------------
-
-            if not is_valid_c_code(code):
-                logger.warning("Received invalid C code from client")
-                await websocket.send_text(json.dumps({
-                    "error": "🛡️ Guardrail: Please submit valid C programming code."
-                }))
+                data = json.loads(raw_data)
+            except json.JSONDecodeError:
+                await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
                 continue
+
+            code = data.get('code', '')
             
-            detected_error = analyze_c_code(code)
-            if detected_error and detected_error in HINT_MATRIX:
-                base_hint = HINT_MATRIX[detected_error][state][attempt]
+            # FIX 2: Clamp attempt between 1 and 3
+            attempt = max(1, min(int(data.get('attempt', 1)), 3))
+            
+            # FIX 3: Get cognitive state per-request from client, not from a global
+            state = data.get('cognitiveState', CURRENT_COGNITIVE_STATE)
+
+            # FIX 1: Only use client token if it's a non-empty string
+            client_token = data.get('token', '').strip()
+            vark_from_client = data.get('vark', '')
+            actual_token = client_token if client_token else BEARER_TOKEN
+
+            print(f"\n{'='*60}")
+            print(f"[DEBUG] ===== NEW HINT REQUEST RECEIVED =====")
+            print(f"[DEBUG] Full Payload from Client: {data}")
+            print(f"[DEBUG]")
+            print(f"[DEBUG] 📝 studentCode: {code[:100] if code else '(EMPTY)'} {'...' if len(code) > 100 else ''}")
+            print(f"[DEBUG]    Length: {len(code)} chars")
+            print(f"[DEBUG]")
+            print(f"[DEBUG] 🔄 attempt: {attempt}/3")
+            print(f"[DEBUG] 🎨 vark: '{vark_from_client}' (from client) → Will use style: '{vark_from_client if vark_from_client else 'AUTO-DETECT'}'")
+            print(f"[DEBUG] 🔐 token: {actual_token[:30] + '...' if actual_token else '(NO TOKEN - USING BEARER_TOKEN)'}")
+            print(f"[DEBUG]    Token empty? {not client_token} | Falling back to BEARER_TOKEN? {not client_token and BEARER_TOKEN}")
+            print(f"[DEBUG] 🧠 cognitiveState: {state}")
+            print(f"{'='*60}")
+
+            vark_style = "R"  # Default fallback
+
+            # FIX 4: Use httpx for native async instead of requests in thread pool
+            try:
+                print(f"[DEBUG] External Module: Fetching style from {HOSTED_URL}")
+                headers = {"Authorization": f"Bearer {actual_token}"}
+
+                async with httpx.AsyncClient() as client:
+                    vark_res = await client.get(HOSTED_URL, headers=headers, timeout=10)
+
+                if vark_res.status_code == 200:
+                    module_2_data = vark_res.json()
+                    print(f"[DEBUG] External Module Response: {module_2_data}")
+
+                    raw_style = module_2_data.get(
+                        "predicted_style", module_2_data.get("vark", "R")
+                    ).upper()
+
+                    style_map = {
+                        'VISUAL': 'V', 'AURAL': 'A', 'READING/WRITING': 'R',
+                        'KINESTHETIC': 'K', 'MULTIMODAL': 'V'
+                    }
+                    vark_style = style_map.get(raw_style, raw_style)
+                    print(f"[DEBUG] Final Style Decided: {vark_style}")
+                else:
+                    print(f"[DEBUG] External Module Error: Status {vark_res.status_code}")
+
+            except Exception as e:
+                print(f"[DEBUG] External Module Connection Failed: {e}")
+                vark_style = "R"
+
+            # --- PROCESS HINT ---
+            if not is_valid_c_code(code):
+                await websocket.send_text(json.dumps({"error": "Invalid C code"}))
+                continue
+
+            error_key = analyze_c_code(code)
+            if error_key and error_key in HINT_MATRIX:
+                base_hint = HINT_MATRIX[error_key][state][attempt]
             else:
                 base_hint = get_local_ai_hint(code, state, attempt)
-            
+
             vark_payload = format_hint_to_vark(code, vark_style, base_hint)
-            
+
+            print(f"[DEBUG] Sending VARK Payload: {vark_payload['vark_mode']}")
+            print(f"[DEBUG] ------------------------\n")
+
             await websocket.send_text(json.dumps({
                 "status": "success",
                 "ai_payload": vark_payload,
                 "base_hint": base_hint,
                 "attempt": attempt
             }))
-            
+
     except WebSocketDisconnect:
-        logger.info("WebSocket client disconnected")
+        logger.info("🔌 VS Code Disconnected")
     except Exception as e:
-        logger.error(f"Unexpected error in WebSocket endpoint: {e}")
-        try:
-            await websocket.send_text(json.dumps({"error": "Internal server error"}))
-        except:
-            pass
+        logger.error(f"Unexpected Error: {e}")
+        # FIX 6: Close WebSocket cleanly on unexpected error
+        await websocket.close(code=1011)

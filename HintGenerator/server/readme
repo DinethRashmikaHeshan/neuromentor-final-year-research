@@ -1,0 +1,2 @@
+docker build -t model-fastapi:latest .
+docker run -e key=AIzaSyBYjU33cctb1lMvRrPG3rptM5AZvSdr-zY -p 8000:8000 model-fastapi:latest

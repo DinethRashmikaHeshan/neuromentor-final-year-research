@@ -68,32 +68,73 @@ async function triggerHint(context) {
 async function fetchHintAndStartTimer(context, studentCode) {
     let varkStyle = ""; 
     let authToken = ""; 
+    let cognitiveState = "";
+    
+    // Debug: Check if context has secrets API
+    if (!context || !context.secrets) {
+        console.error('❌ CRITICAL: context or context.secrets is undefined!');
+        console.log('context:', context);
+    }
     
     // THE FIX: If they touched the dropdown, ALWAYS use it (even if it's "Auto Mode" / blank)
     if (manualStyleOverride !== null) {
         varkStyle = manualStyleOverride;
     } else {
         try {
-            authToken = await context.secrets.get('vark-auth-token') || "";
-            const userJson = await context.secrets.get('vark-user');
-            if (userJson) {
-                const user = JSON.parse(userJson);
-                const styleMap = { 'VISUAL': 'V', 'AURAL': 'A', 'READING/WRITING': 'R', 'KINESTHETIC': 'K', 'MULTIMODAL': 'V' };
-                varkStyle = styleMap[user.learningStyle?.toUpperCase()] || "";
+            // Debug: Log before and after retrieval
+            console.log('[DEBUG] Attempting to retrieve secrets...');
+            
+            const tokenResult = await context.secrets.get('vark-auth-token');
+            authToken = tokenResult || "";
+            console.log('[DEBUG] Retrieved token:', authToken ? authToken.substring(0, 20) + '...' : '(NULL/UNDEFINED)');
+            
+            const userJsonResult = await context.secrets.get('vark-user');
+            console.log('[DEBUG] Retrieved user JSON:', userJsonResult ? 'EXISTS' : '(NULL/UNDEFINED)');
+            
+            if (userJsonResult) {
+                try {
+                    const user = JSON.parse(userJsonResult);
+                    console.log('[DEBUG] Parsed user:', user);
+                    
+                    const styleMap = { 'VISUAL': 'V', 'AURAL': 'A', 'READING/WRITING': 'R', 'KINESTHETIC': 'K', 'MULTIMODAL': 'V' };
+                    varkStyle = styleMap[user.learningStyle?.toUpperCase()] || "";
+                    cognitiveState = user.cognitiveState || "";
+                    
+                    console.log('[DEBUG] Extracted varkStyle:', varkStyle, '| cognitiveState:', cognitiveState);
+                } catch (parseErr) {
+                    console.error('[DEBUG] Failed to parse user JSON:', parseErr);
+                }
+            } else {
+                console.warn('[DEBUG] vark-user secret is empty - USER NOT LOGGED IN?');
             }
-        } catch (e) { console.error("Secret storage error:", e); }
+        } catch (e) { 
+            console.error("[DEBUG] Secret storage error:", e);
+            console.error("[DEBUG] Error stack:", e.stack);
+        }
     }
 
     if (activeSocket) activeSocket.close();
     activeSocket = new WebSocket('ws://127.0.0.1:8000/ws/hints');
+    // activeSocket = new WebSocket("wss://llama-app.lemonflower-bec54065.centralindia.azurecontainerapps.io/ws/hints");
 
     activeSocket.on('open', () => {
-        activeSocket.send(JSON.stringify({ 
+        const payload = {
             code: studentCode, 
             attempt: currentAttempt, 
             vark: varkStyle,
-            token: authToken 
-        }));
+            token: authToken,
+            cognitiveState: cognitiveState
+        };
+        
+        console.log('🚀 WebSocket Payload being sent to main.py:');
+        console.log('  studentCode:', studentCode.substring(0, 100) + (studentCode.length > 100 ? '...' : ''));
+        console.log('  attempt:', currentAttempt);
+        console.log('  vark:', varkStyle);
+        console.log('  token:', authToken ? authToken.substring(0, 20) + '...' : '(empty)');
+        console.log('  cognitiveState:', cognitiveState);
+        console.log('  Full payload:', payload);
+        
+        activeSocket.send(JSON.stringify(payload));
     });
     
     activeSocket.on('message', (data) => {

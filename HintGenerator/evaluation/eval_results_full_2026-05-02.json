@@ -1,0 +1,658 @@
+{
+  "summary": {
+    "run_tag": "full",
+    "timestamp": "2026-05-02T16:24:35.435939",
+    "total_time_s": 78.5,
+    "num_tests": 30,
+    "errors": 0,
+    "avg_latency_ms": 2616.0,
+    "overall": {
+      "accuracy": 2.23,
+      "pedagogy": 3.27,
+      "tone": 3.03,
+      "specificity": 3.0,
+      "completeness": 2.43
+    },
+    "composite_avg": 2.79,
+    "by_category": {
+      "Syntax": {
+        "accuracy": 2.6,
+        "pedagogy": 3.2,
+        "tone": 3.2,
+        "specificity": 3.2,
+        "completeness": 2.4
+      },
+      "Declaration": {
+        "accuracy": 3.4,
+        "pedagogy": 3.4,
+        "tone": 3.0,
+        "specificity": 3.4,
+        "completeness": 2.8
+      },
+      "Logic": {
+        "accuracy": 1.8,
+        "pedagogy": 3.2,
+        "tone": 3.0,
+        "specificity": 2.6,
+        "completeness": 2.8
+      },
+      "Memory": {
+        "accuracy": 2.2,
+        "pedagogy": 3.6,
+        "tone": 2.8,
+        "specificity": 3.2,
+        "completeness": 2.6
+      },
+      "Function": {
+        "accuracy": 1.8,
+        "pedagogy": 3.2,
+        "tone": 3.0,
+        "specificity": 3.2,
+        "completeness": 2.4
+      },
+      "Array": {
+        "accuracy": 1.6,
+        "pedagogy": 3.0,
+        "tone": 3.2,
+        "specificity": 2.4,
+        "completeness": 1.6
+      }
+    },
+    "by_difficulty": {
+      "Easy": {
+        "accuracy": 2.43,
+        "pedagogy": 3.14,
+        "tone": 3.14,
+        "specificity": 3.57,
+        "completeness": 2.71
+      },
+      "Medium": {
+        "accuracy": 2.09,
+        "pedagogy": 3.18,
+        "tone": 3.18,
+        "specificity": 2.82,
+        "completeness": 2.27
+      },
+      "Hard": {
+        "accuracy": 2.25,
+        "pedagogy": 3.42,
+        "tone": 2.83,
+        "specificity": 2.83,
+        "completeness": 2.42
+      }
+    },
+    "by_state": {
+      "FOCUS": {
+        "accuracy": 2.6,
+        "pedagogy": 3.1,
+        "tone": 3.1,
+        "specificity": 3.8,
+        "completeness": 2.4
+      },
+      "CONFUSE": {
+        "accuracy": 1.67,
+        "pedagogy": 3.22,
+        "tone": 3.22,
+        "specificity": 2.56,
+        "completeness": 2.33
+      },
+      "OVERLOAD": {
+        "accuracy": 2.36,
+        "pedagogy": 3.45,
+        "tone": 2.82,
+        "specificity": 2.64,
+        "completeness": 2.55
+      }
+    },
+    "best_test": {
+      "id": "missing_closing_brace",
+      "composite": 3.8
+    },
+    "worst_test": {
+      "id": "uninitialized_pointer",
+      "composite": 1.8
+    }
+  },
+  "results": [
+    {
+      "test_id": "missing_semicolon",
+      "category": "Syntax",
+      "difficulty": "Easy",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "Semicolon is missing after 'printf'.",
+      "latency_ms": 8653,
+      "scores": {
+        "accuracy": 5,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 2
+      },
+      "composite": 3.2,
+      "feedback": "Composite 3.2/5. Weakest: completeness (2/5). Words: 5."
+    },
+    {
+      "test_id": "missing_closing_brace",
+      "category": "Syntax",
+      "difficulty": "Easy",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "Memory Model: 'printf' writes after 'main()' returns.\nCheck your return statement.",
+      "latency_ms": 1976,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 4,
+        "tone": 4,
+        "specificity": 5,
+        "completeness": 4
+      },
+      "composite": 3.8,
+      "feedback": "Composite 3.8/5. Weakest: accuracy (2/5). Words: 11."
+    },
+    {
+      "test_id": "mismatched_parentheses",
+      "category": "Syntax",
+      "difficulty": "Easy",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "The keyword 'if' is improperly formatted. Ensure that the opening '{' is directly after 'if'.",
+      "latency_ms": 2393,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 3
+      },
+      "composite": 2.4,
+      "feedback": "Composite 2.4/5. Weakest: accuracy (1/5). Words: 15."
+    },
+    {
+      "test_id": "missing_include",
+      "category": "Syntax",
+      "difficulty": "Easy",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "int main() { printf(\"Hello\"); }",
+      "latency_ms": 1313,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 5,
+        "completeness": 1
+      },
+      "composite": 3.0,
+      "feedback": "Composite 3.0/5. Weakest: completeness (1/5). Words: 5."
+    },
+    {
+      "test_id": "invalid_assignment_op",
+      "category": "Syntax",
+      "difficulty": "Medium",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "The C keyword 'x=' is an assignment operator. \nYou want 'x =', not 'x='.",
+      "latency_ms": 2512,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 1,
+        "completeness": 2
+      },
+      "composite": 2.2,
+      "feedback": "Composite 2.2/5. Weakest: specificity (1/5). Words: 14."
+    },
+    {
+      "test_id": "undeclared_variable",
+      "category": "Declaration",
+      "difficulty": "Easy",
+      "state": "OVERLOAD",
+      "attempt": 3,
+      "hint": "The issue is that 'total' is not declared.",
+      "latency_ms": 1655,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 2
+      },
+      "composite": 2.6,
+      "feedback": "Composite 2.6/5. Weakest: specificity (2/5). Words: 8."
+    },
+    {
+      "test_id": "wrong_format_specifier",
+      "category": "Declaration",
+      "difficulty": "Medium",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "Your float is being printed as an integer. \nThe 'printf' statement is using an integer format specifier, but it's passing a float.",
+      "latency_ms": 2919,
+      "scores": {
+        "accuracy": 5,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 4,
+        "completeness": 4
+      },
+      "composite": 3.8,
+      "feedback": "Composite 3.8/5. Weakest: pedagogy (3/5). Words: 22."
+    },
+    {
+      "test_id": "char_vs_int_confusion",
+      "category": "Declaration",
+      "difficulty": "Medium",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "Type: 'char'\nIdentify: C Data Type.\nCheck: 'char grade' is an integer variable.",
+      "latency_ms": 2519,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 4,
+        "tone": 3,
+        "specificity": 5,
+        "completeness": 3
+      },
+      "composite": 3.6,
+      "feedback": "Composite 3.6/5. Weakest: accuracy (3/5). Words: 13."
+    },
+    {
+      "test_id": "implicit_int_return",
+      "category": "Declaration",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 4,
+      "hint": "Your 'main()' function is missing an opening parenthesis.\nWhat is the correct syntax for your 'main' function?",
+      "latency_ms": 2463,
+      "scores": {
+        "accuracy": 4,
+        "pedagogy": 4,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 3
+      },
+      "composite": 3.2,
+      "feedback": "Composite 3.2/5. Weakest: specificity (2/5). Words: 17."
+    },
+    {
+      "test_id": "void_return_value",
+      "category": "Declaration",
+      "difficulty": "Hard",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "The function 'greet()' is attempting to return an integer, but its declaration is missing the 'int' keyword.",
+      "latency_ms": 2733,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 4,
+        "completeness": 2
+      },
+      "composite": 2.8,
+      "feedback": "Composite 2.8/5. Weakest: accuracy (2/5). Words: 17."
+    },
+    {
+      "test_id": "infinite_loop",
+      "category": "Logic",
+      "difficulty": "Medium",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "First, identify the 'while' loop syntax, as it is the key to the student's code. In C, the 'while' loop requires a condition, an expression, and a semicolon.",
+      "latency_ms": 3833,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 3,
+        "tone": 4,
+        "specificity": 2,
+        "completeness": 3
+      },
+      "composite": 2.8,
+      "feedback": "Composite 2.8/5. Weakest: accuracy (2/5). Words: 28."
+    },
+    {
+      "test_id": "off_by_one_loop",
+      "category": "Logic",
+      "difficulty": "Medium",
+      "state": "OVERLOAD",
+      "attempt": 3,
+      "hint": "The keyword '<=' is an invalid C operator for arrays.\nYou wrote arr[5].",
+      "latency_ms": 2525,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 2
+      },
+      "composite": 2.4,
+      "feedback": "Composite 2.4/5. Weakest: accuracy (1/5). Words: 13."
+    },
+    {
+      "test_id": "assignment_in_condition",
+      "category": "Logic",
+      "difficulty": "Medium",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "The keyword 'if' is used incorrectly here.",
+      "latency_ms": 1630,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 1
+      },
+      "composite": 2.0,
+      "feedback": "Composite 2.0/5. Weakest: accuracy (1/5). Words: 7."
+    },
+    {
+      "test_id": "wrong_loop_variable",
+      "category": "Logic",
+      "difficulty": "Easy",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "The keyword 'i' is being incremented immediately after the printf statement, so it always prints the last value of 'i'. \n\nWrite:",
+      "latency_ms": 2917,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 4
+      },
+      "composite": 3.0,
+      "feedback": "Composite 3.0/5. Weakest: accuracy (2/5). Words: 21."
+    },
+    {
+      "test_id": "integer_division",
+      "category": "Logic",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 3,
+      "hint": "The keyword 'float' is trying to be used with division of 'int'. \nYou have the wrong type for the division operation.",
+      "latency_ms": 2800,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 4,
+        "tone": 2,
+        "specificity": 3,
+        "completeness": 4
+      },
+      "composite": 3.2,
+      "feedback": "Composite 3.2/5. Weakest: tone (2/5). Words: 21."
+    },
+    {
+      "test_id": "null_pointer_dereference",
+      "category": "Memory",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 4,
+      "hint": "You're trying to assign a value to a NULL pointer. 'p' is pointing to an invalid memory location.",
+      "latency_ms": 2502,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 4,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 3
+      },
+      "composite": 3.2,
+      "feedback": "Composite 3.2/5. Weakest: accuracy (3/5). Words: 18."
+    },
+    {
+      "test_id": "uninitialized_pointer",
+      "category": "Memory",
+      "difficulty": "Hard",
+      "state": "CONFUSE",
+      "attempt": 3,
+      "hint": "Variable declaration",
+      "latency_ms": 1050,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 1,
+        "completeness": 1
+      },
+      "composite": 1.8,
+      "feedback": "Composite 1.8/5. Weakest: accuracy (1/5). Words: 2."
+    },
+    {
+      "test_id": "missing_malloc",
+      "category": "Memory",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 5,
+      "hint": "Variable Declaration\nThe student is trying to assign values to a pointer.",
+      "latency_ms": 1934,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 4,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 3
+      },
+      "composite": 2.8,
+      "feedback": "Composite 2.8/5. Weakest: accuracy (2/5). Words: 12."
+    },
+    {
+      "test_id": "stack_array_return",
+      "category": "Memory",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 4,
+      "hint": "The keyword 'return' is used incorrectly, and the pointer 'arr' is pointing to automatic storage. What happens when the function 'getArr' ends?",
+      "latency_ms": 3173,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 4,
+        "tone": 2,
+        "specificity": 5,
+        "completeness": 4
+      },
+      "composite": 3.6,
+      "feedback": "Composite 3.6/5. Weakest: tone (2/5). Words: 22."
+    },
+    {
+      "test_id": "buffer_overflow",
+      "category": "Memory",
+      "difficulty": "Hard",
+      "state": "FOCUS",
+      "attempt": 2,
+      "hint": "'char' is not a keyword, it's a data type. Analyze your scanf and printf.",
+      "latency_ms": 2356,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 5,
+        "completeness": 2
+      },
+      "composite": 3.0,
+      "feedback": "Composite 3.0/5. Weakest: accuracy (2/5). Words: 14."
+    },
+    {
+      "test_id": "missing_function_prototype",
+      "category": "Function",
+      "difficulty": "Medium",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "The student is trying to print an integer, but their printf is formatted to expect a float.\nIs your add function returning an integer?",
+      "latency_ms": 2840,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 4,
+        "tone": 3,
+        "specificity": 5,
+        "completeness": 4
+      },
+      "composite": 3.6,
+      "feedback": "Composite 3.6/5. Weakest: accuracy (2/5). Words: 24."
+    },
+    {
+      "test_id": "wrong_argument_count",
+      "category": "Function",
+      "difficulty": "Easy",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "int a, b; int add(int x, int y) { return x + y; } int main() { int result = add(3, 4); printf(\"%d\", result); return 0; }",
+      "latency_ms": 4193,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 5,
+        "completeness": 3
+      },
+      "composite": 3.0,
+      "feedback": "Composite 3.0/5. Weakest: accuracy (1/5). Words: 27."
+    },
+    {
+      "test_id": "pass_by_value_swap",
+      "category": "Function",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 3,
+      "hint": "The keyword is 'int'. Analyze the formal parameter 'int a' and 'int b'.",
+      "latency_ms": 2518,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 2
+      },
+      "composite": 2.2,
+      "feedback": "Composite 2.2/5. Weakest: accuracy (1/5). Words: 13."
+    },
+    {
+      "test_id": "scope_error",
+      "category": "Function",
+      "difficulty": "Medium",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "The C keyword '}' is causing a syntax error.",
+      "latency_ms": 1702,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 1,
+        "completeness": 1
+      },
+      "composite": 1.8,
+      "feedback": "Composite 1.8/5. Weakest: accuracy (1/5). Words: 9."
+    },
+    {
+      "test_id": "missing_return_value",
+      "category": "Function",
+      "difficulty": "Medium",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "You are missing the return statement from the 'square' function.",
+      "latency_ms": 1822,
+      "scores": {
+        "accuracy": 4,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 2
+      },
+      "composite": 3.0,
+      "feedback": "Composite 3.0/5. Weakest: completeness (2/5). Words: 10."
+    },
+    {
+      "test_id": "array_out_of_bounds",
+      "category": "Array",
+      "difficulty": "Medium",
+      "state": "CONFUSE",
+      "attempt": 2,
+      "hint": "Array index, '3'. 'arr[3]' means 'where is the 4th position?'.",
+      "latency_ms": 2455,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 4,
+        "specificity": 2,
+        "completeness": 2
+      },
+      "composite": 2.4,
+      "feedback": "Composite 2.4/5. Weakest: accuracy (1/5). Words: 10."
+    },
+    {
+      "test_id": "string_no_null_terminator",
+      "category": "Array",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 3,
+      "hint": "'char s[3] = {'H','i','!'} ;' contains an illegal initialiser.",
+      "latency_ms": 2553,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 1
+      },
+      "composite": 2.0,
+      "feedback": "Composite 2.0/5. Weakest: accuracy (1/5). Words: 9."
+    },
+    {
+      "test_id": "strcmp_vs_equals",
+      "category": "Array",
+      "difficulty": "Medium",
+      "state": "FOCUS",
+      "attempt": 1,
+      "hint": "char s[] = \"hello\";",
+      "latency_ms": 1451,
+      "scores": {
+        "accuracy": 1,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 1
+      },
+      "composite": 2.2,
+      "feedback": "Composite 2.2/5. Weakest: accuracy (1/5). Words: 4."
+    },
+    {
+      "test_id": "array_size_from_pointer",
+      "category": "Array",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 4,
+      "hint": "Keyword: 'sizeof'\nVariable: arr",
+      "latency_ms": 1767,
+      "scores": {
+        "accuracy": 3,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 3,
+        "completeness": 1
+      },
+      "composite": 2.6,
+      "feedback": "Composite 2.6/5. Weakest: completeness (1/5). Words: 4."
+    },
+    {
+      "test_id": "strcpy_overflow",
+      "category": "Array",
+      "difficulty": "Hard",
+      "state": "OVERLOAD",
+      "attempt": 3,
+      "hint": "The C keyword 'strcpy' is causing the issue.\n\n### Student State:\nIs there a way to change the type of strcpy in C?",
+      "latency_ms": 3335,
+      "scores": {
+        "accuracy": 2,
+        "pedagogy": 3,
+        "tone": 3,
+        "specificity": 2,
+        "completeness": 3
+      },
+      "composite": 2.6,
+      "feedback": "Composite 2.6/5. Weakest: accuracy (2/5). Words: 23."
+    }
+  ]
+}
